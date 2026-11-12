@@ -3,7 +3,8 @@
 // Without JavaScript the facade is a plain link to the video.
 import type { ImageMetadata } from 'astro';
 import { Image } from 'astro:assets';
-import { ui } from '../lib/ui.ts';
+import { pageLocation } from '../lib/content.ts';
+import { uiFor } from '../lib/ui.ts';
 
 interface Props {
   id: string;
@@ -12,6 +13,7 @@ interface Props {
 }
 
 const { id, title, poster } = Astro.props;
+const ui = uiFor(pageLocation(Astro.url).lang);
 ---
 <figure class="media-figure video-figure">
   <div class="video-frame">

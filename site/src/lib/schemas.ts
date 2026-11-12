@@ -67,6 +67,31 @@ export function projectSchema<I extends z.ZodType>(image: () => I) {
 
 const unit = z.number().min(0).max(1);
 
+// Translations (projects/<id>/en.md, hy.md; site.en.yaml, site.hy.yaml; objects' `translations`).
+// Every field is optional: whatever is missing shows as a visible placeholder in that language.
+const optionalText = z.string().trim().min(1).optional();
+
+export const projectTranslationSchema = z.object({
+  title: optionalText,
+  studio: optionalText,
+  team: z.array(nonEmpty).optional(),
+  materials: optionalText,
+  history: optionalText,
+  fromAuthor: optionalText,
+  /** Same order as the Russian media list. */
+  media: z.array(z.object({ alt: optionalText, caption: optionalText })).optional(),
+});
+
+const objectTranslation = z.object({ label: optionalText, alt: optionalText });
+
+export const siteTranslationSchema = z.object({
+  title: optionalText,
+  phrase: optionalText,
+  menu: z.object({ lost: optionalText, found: optionalText, place: optionalText }).optional(),
+  homeVariants: z.record(z.enum(['1', '2', '3']), z.object({ lead: optionalText, keywords: z.array(nonEmpty).optional() })).optional(),
+  footer: z.object({ text: optionalText, partners: z.array(nonEmpty).optional() }).optional(),
+});
+
 export function objectSchema<I extends z.ZodType>(image: () => I) {
   return z.preprocess(
     // The cut-out always sits next to its record as image.png.
@@ -80,6 +105,8 @@ export function objectSchema<I extends z.ZodType>(image: () => I) {
         alsoClaimedBy: z.array(asciiId('p')).default([]),
         /** Open questions the team preview marks; see issues.ts. */
         issues: z.array(z.enum(objectIssueCodes)).default([]),
+        /** Label and alt text in English and Armenian. */
+        translations: z.object({ en: objectTranslation.optional(), hy: objectTranslation.optional() }).default({}),
         published: z.boolean().default(false),
         label: nonEmpty,
         alt: nonEmpty,

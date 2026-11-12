@@ -122,3 +122,21 @@ test('YouTube loads nothing before the visitor presses play', async ({ page }) =
   await page.locator('a[data-youtube-id]').first().click();
   await expect(page.locator('iframe[src*="youtube-nocookie.com/embed/"]')).toHaveCount(1);
 });
+
+test('English and Armenian mirror every page and the switch keeps the page', async ({ page }) => {
+  const projects = await projectPaths(page);
+  for (const [lang, place] of [['en', 'POKR AYRUM'], ['hy', 'ՊՈԿՐ ԱՅՐՈՒՄ']] as const) {
+    for (const path of ['', 'found/', 'pokr-ayrum/', projects[0].slice(base.length)]) {
+      const response = await page.goto(`${base}${lang}/${path}`);
+      expect(response?.status(), `${lang}/${path}`).toBe(200);
+      await expect(page.locator('html')).toHaveAttribute('lang', lang);
+      await expect(page.locator('.title-place')).toHaveText(place);
+      await expect(page.locator('.lang-switch a[aria-current]')).toHaveAttribute('hreflang', lang);
+      await expectNoHorizontalScroll(page);
+    }
+  }
+  await page.goto(projects[0]);
+  await page.locator('.lang-switch a[hreflang="en"]').click();
+  await expect(page).toHaveURL(new RegExp(`${base}en/${projects[0].slice(base.length)}$`));
+  await expect(page.locator('.lang-switch a')).toHaveText(['ENG', 'RUS', 'ARM']);
+});

@@ -19,8 +19,6 @@ export type FieldObject = {
   alt: string;
   /** Optimized web image (webp), with a smaller candidate in srcset. */
   image: { src: string; srcset: string; width: number; height: number };
-  /** Preview only: labels of open questions, marked on the field. */
-  issues?: string[];
   /** Pixel size of the original cut-out. */
   intrinsicSize: { width: number; height: number };
   /** Normalized bounding box of the visible (non-transparent) pixels. */

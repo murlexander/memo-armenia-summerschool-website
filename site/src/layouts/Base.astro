@@ -5,8 +5,8 @@ import cyrillic from '@fontsource-variable/noto-sans/files/noto-sans-cyrillic-wg
 import armenian from '@fontsource-variable/noto-sans-armenian/files/noto-sans-armenian-armenian-wght-normal.woff2?url';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import { getSite, href, preview } from '../lib/content.ts';
-import { ui } from '../lib/ui.ts';
+import { getLocalSite, href, pageLocation, preview } from '../lib/content.ts';
+import { langLabels, langs, uiFor } from '../lib/ui.ts';
 import '../styles/global.css';
 
 type Section = 'lost' | 'found' | 'place';
@@ -22,9 +22,11 @@ interface Props {
 }
 
 const { title, description, section, sectionIndex = true, homeVariant } = Astro.props;
-const site = await getSite();
+const { lang, path } = pageLocation(Astro.url);
+const ui = uiFor(lang);
+const site = await getLocalSite(lang);
 const pageTitle = title ? `${title} — ${site.title}` : site.title;
-const metaDescription = description ?? site.phrase ?? site.homeVariants['1'].lead;
+const metaDescription = description ?? site.phrase ?? site.homeVariants['1'].lead ?? site.title;
 
 // One family ("Site Sans") assembled from Noto Sans and Noto Sans Armenian subsets.
 const fontFaces = [
@@ -47,6 +49,7 @@ const homeScript = homeVariant
     <meta name="description" content={metaDescription} />
     {preview && <meta name="robots" content="noindex,nofollow,noarchive,noimageindex" />}
     <link rel="icon" type="image/png" href={href('favicon.png')} />
+    {langs.map((code) => <link rel="alternate" hreflang={code} href={href(path, code)} />)}
     <link rel="preload" href={cyrillic} as="font" type="font/woff2" crossorigin />
     <style is:inline set:html={fontFaces}></style>
     <script is:inline set:html={`document.documentElement.classList.add('js');${homeScript}`}></script>
@@ -54,10 +57,15 @@ const homeScript = homeVariant
   <body>
     <a class="skip-link" href="#main">{ui.skipToContent}</a>
     <div class="background-grain" aria-hidden="true"></div>
-    <Header site={site} section={section} sectionIndex={sectionIndex} />
+    <Header site={site} lang={lang} section={section} sectionIndex={sectionIndex} />
     <main id="main" tabindex="-1">
       <slot />
     </main>
-    <Footer site={site} />
+    <Footer site={site} lang={lang} />
+    <nav class="lang-switch" aria-label={ui.language}>
+      {langs.map((code) => (
+        <a href={href(path, code)} hreflang={code} lang={code} aria-current={code === lang ? 'true' : undefined}>{langLabels[code]}</a>
+      ))}
+    </nav>
   </body>
 </html>

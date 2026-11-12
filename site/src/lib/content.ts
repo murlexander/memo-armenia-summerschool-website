@@ -1,6 +1,7 @@
 // Content queries with the publication gate applied. Pages read content only through here.
 import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
 import { isPreview } from './build-env.ts';
+import { defaultLang, langs, type Lang } from './ui.ts';
 
 export type Project = CollectionEntry<'projects'>;
 export type MuseumObject = CollectionEntry<'objects'>;
@@ -51,17 +52,112 @@ export function objectsOfProject(entries: ObjectEntry[], projectId: string) {
   };
 }
 
-export async function getLongread() {
-  const page = await getEntry('pages', 'pokr-ayrum');
+const baseUrl = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+
+/** Base- and language-aware internal URL; `path` is site-relative ("found/", "found/slug/"). Russian lives at the root. */
+export function href(path = '', lang: Lang = defaultLang): string {
+  return baseUrl + (lang === defaultLang ? '' : `${lang}/`) + path.replace(/^\/+/, '');
+}
+
+export const projectHref = (slug: string, lang: Lang = defaultLang) => href(`found/${slug}/`, lang);
+
+/** The page's language and its site-relative path without the language prefix. */
+export function pageLocation(url: URL): { lang: Lang; path: string } {
+  const rest = url.pathname.startsWith(baseUrl) ? url.pathname.slice(baseUrl.length) : url.pathname.replace(/^\/+/, '');
+  const [first, ...tail] = rest.split('/');
+  const lang = langs.find((code) => code !== defaultLang && code === first);
+  return lang ? { lang, path: tail.join('/') } : { lang: defaultLang, path: rest };
+}
+export const objectAnchor = (id: string) => `object-${id}`;
+
+// Localized content. Russian is the source; English and Armenian take their text from translation
+// files and return null for anything not written yet, which pages render as a visible placeholder.
+
+/** Names that have a settled form outside Russian, used until a site translation says otherwise. */
+const siteDefaults: Record<Exclude<Lang, 'ru'>, { title: string; place: string; partners: Record<string, string> }> = {
+  en: { title: 'Lost & Found Pokr Ayrum', place: 'POKR AYRUM', partners: { 'Человек в истории': 'Person in History' } },
+  hy: { title: 'Lost & Found Պոկր Այրում', place: 'ՊՈԿՐ ԱՅՐՈՒՄ', partners: { 'Человек в истории': 'Person in History' } },
+};
+
+export async function getLocalSite(lang: Lang) {
+  const site = await getSite();
+  if (lang === defaultLang) return site;
+  const translation = (await getEntry('siteTranslations', lang))?.data;
+  const defaults = siteDefaults[lang];
+  const homeVariants = Object.fromEntries((['1', '2', '3'] as const).map((key) => {
+    const own = translation?.homeVariants?.[key];
+    const source = site.homeVariants[key];
+    return [key, { lead: own?.lead ?? null, keywords: source.keywords ? own?.keywords ?? null : undefined, instruction: source.instruction }];
+  })) as Record<'1' | '2' | '3', { lead: string | null; keywords?: string[] | null; instruction: boolean }>;
+  return {
+    title: translation?.title ?? defaults.title,
+    phrase: site.phrase ? translation?.phrase ?? null : undefined,
+    menu: {
+      lost: translation?.menu?.lost ?? site.menu.lost,
+      found: translation?.menu?.found ?? site.menu.found,
+      place: translation?.menu?.place ?? defaults.place,
+    },
+    homeVariants,
+    defaultHomeVariant: site.defaultHomeVariant,
+    footer: {
+      text: translation?.footer?.text ?? null,
+      partners: site.footer.partners.map((partner, index) => ({
+        ...partner,
+        name: translation?.footer?.partners?.[index] ?? defaults.partners[partner.name] ?? partner.name,
+      })),
+      instagram: site.footer.instagram,
+    },
+  };
+}
+
+export type LocalSite = Awaited<ReturnType<typeof getLocalSite>>;
+
+export async function localizeProject(project: Project, lang: Lang) {
+  const { data } = project;
+  if (lang === defaultLang) {
+    return {
+      title: data.title as string | null,
+      studio: data.studio as string | null | undefined,
+      team: data.team as (string | null)[],
+      materials: data.materials as string | null,
+      history: data.history as string | null,
+      fromAuthor: data.fromAuthor as string | null,
+      media: data.media.map((item) => ({ alt: item.type === 'image' ? item.alt : item.title, caption: item.type === 'image' ? item.caption : '' })) as { alt: string | null; caption: string }[],
+    };
+  }
+  const t = (await getEntry('projectTranslations', `${data.id}/${lang}`))?.data;
+  // Missing pieces stay null; empty Russian fields stay empty, so placeholders only mark real gaps.
+  const text = (own: string | undefined, source: string) => (source.trim() ? own ?? null : own ?? '');
+  return {
+    title: t?.title ?? null,
+    studio: data.studio ? t?.studio ?? null : undefined,
+    team: t?.team ?? data.team.map(() => null),
+    materials: text(t?.materials, data.materials),
+    history: text(t?.history, data.history),
+    fromAuthor: text(t?.fromAuthor, data.fromAuthor),
+    media: data.media.map((item, index) => ({ alt: t?.media?.[index]?.alt ?? null, caption: item.type === 'image' && item.caption ? t?.media?.[index]?.caption ?? '' : '' })),
+  };
+}
+
+export type LocalProject = Awaited<ReturnType<typeof localizeProject>>;
+
+export function localizeObject(object: MuseumObject, lang: Lang): { label: string | null; alt: string | null } {
+  if (lang === defaultLang) return { label: object.data.label, alt: object.data.alt };
+  const own = object.data.translations[lang];
+  return { label: own?.label ?? null, alt: own?.alt ?? null };
+}
+
+export async function getLongreadFor(lang: Lang) {
+  const page = await getEntry('pages', lang === defaultLang ? 'pokr-ayrum' : `pokr-ayrum/${lang}`);
   return page && visible(page) ? page : undefined;
 }
 
-const baseUrl = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
-
-/** Base-aware internal URL; `path` is site-relative ("found/", "found/slug/"). */
-export function href(path = ''): string {
-  return baseUrl + path.replace(/^\/+/, '');
+/** Project pages for one language: every project with its objects (outside the preview, only those with objects). */
+export async function projectPages() {
+  const projects = await getProjects();
+  const objects = await getObjects();
+  return projects
+    .map((project) => ({ slug: project.data.slug, props: { project, ...objectsOfProject(objects, project.data.id) } }))
+    // Outside the preview, a project without objects has no page (check-content fails published ones).
+    .filter(({ props }) => props.owned.length > 0 || preview);
 }
-
-export const projectHref = (slug: string) => href(`found/${slug}/`);
-export const objectAnchor = (id: string) => `object-${id}`;

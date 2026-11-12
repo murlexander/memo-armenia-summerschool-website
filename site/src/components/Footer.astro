@@ -1,15 +1,18 @@
 ---
-import type { SiteData } from '../lib/schemas.ts';
-import { ui } from '../lib/ui.ts';
+import Pending from './Pending.astro';
+import type { LocalSite } from '../lib/content.ts';
+import { uiFor, type Lang } from '../lib/ui.ts';
 
 interface Props {
-  site: SiteData;
+  site: LocalSite;
+  lang: Lang;
 }
 
 const { footer } = Astro.props.site;
+const ui = uiFor(Astro.props.lang);
 ---
 <footer class="site-footer">
-  <p class="footer-text">{footer.text}</p>
+  <p class="footer-text">{footer.text ?? <Pending text={ui.pendingText} />}</p>
   {footer.instagram && (
     <p class="footer-social">
       <a href={`https://www.instagram.com/${footer.instagram}/`} rel="noopener">{ui.instagram} @{footer.instagram}</a>

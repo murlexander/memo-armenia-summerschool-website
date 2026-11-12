@@ -85,6 +85,13 @@ h1, h2, h3 { line-height: 1.05; letter-spacing: -.02em; font-weight: 600; }
   .title-menu { flex-wrap: nowrap; justify-content: space-between; white-space: nowrap; font-size: 7.2cqi; line-height: 1.02; }
   .title-break { display: none; }
 }
+/* The place name's width differs by language: English full line ≈ 13.44em; Armenian full line ≈ 14.4em,
+   «ՊՈԿՐ ԱՅՐՈՒՄ» ≈ 7.18em (wider than «LOST & FOUND»). */
+html[lang="hy"] .title-menu { font-size: 13.6cqi; }
+@media (orientation: landscape) {
+  html[lang="en"] .title-menu { font-size: 7.3cqi; }
+  html[lang="hy"] .title-menu { font-size: 6.8cqi; }
+}
 .title-menu a {
   display: inline-flex; align-items: center;
   min-height: 48px;
@@ -179,10 +186,8 @@ html.js .object-field[data-ready="false"] { opacity: 0; animation: field-reveal 
 .object-card:focus-visible { outline: 3px solid var(--lichen); outline-offset: 6px; }
 .object-card:target { outline: 3px dashed var(--clay); outline-offset: 6px; }
 
-/* Team preview: open questions. A clay «!» = something the team has to decide;
-   dashed boxes stand in for a missing object, text or photos. */
-.object-label { flex-wrap: wrap; }
-.object-issues { flex-basis: 100%; color: var(--clay); font-size: .78rem; font-weight: 600; }
+/* Team preview: open questions, on FOUND and project pages only (the LOST field shows just the objects).
+   A clay «!» = something the team has to decide; dashed boxes stand in for a missing object, text or photos. */
 .issue-badge {
   position: absolute; z-index: 3; top: 6%; left: 6%;
   display: grid; place-items: center; width: 1.6rem; height: 1.6rem;
@@ -313,3 +318,24 @@ html.js .object-field[data-ready="false"] { opacity: 0; animation: field-reveal 
   html.js .object-field[data-ready="false"] { animation-delay: 3s !important; }
   .object-card:focus-visible, .object-field[data-mode="fine"] .object-card:hover { transform: none; }
 }
+
+/* Language switch: fixed in the bottom-right corner on every page. */
+.lang-switch {
+  position: fixed; z-index: 100;
+  right: max(12px, env(safe-area-inset-right)); bottom: max(12px, env(safe-area-inset-bottom));
+  display: flex; gap: 2px; padding: 4px;
+  border-radius: 999px;
+  background: rgb(238 231 219 / 90%); backdrop-filter: blur(8px);
+  box-shadow: 0 4px 16px rgb(47 35 23 / 14%);
+  font-size: .78rem; font-weight: 700; letter-spacing: .06em;
+}
+.lang-switch a { display: inline-flex; align-items: center; justify-content: center; min-width: 48px; min-height: 48px; padding: 0 .55rem; border-radius: 999px; color: var(--muted); text-decoration: none; }
+.lang-switch a:hover:not([aria-current]) { color: var(--ink); }
+.lang-switch a[aria-current] { background: var(--ink); color: var(--paper); }
+.lang-switch a:focus-visible { outline: 3px solid var(--lichen); outline-offset: 2px; }
+/* Keep the last footer line clear of the switch. */
+.site-footer { padding-bottom: calc(clamp(2rem, 5vw, 3.5rem) + 3.5rem); }
+
+/* Text not yet written in this language. */
+.pending { color: var(--muted); font-style: italic; text-decoration: underline dashed var(--line); text-decoration-thickness: 2px; text-underline-offset: .2em; }
+.pending-block { margin: 0; padding: 1rem 1.2rem; border: 2px dashed var(--line); border-radius: .8rem; text-decoration: none; }

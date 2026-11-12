@@ -12,6 +12,8 @@ type Props = {
   describedBy?: string;
   /** Prefix for each link's id, so project pages can link back to an object (#object-o0016). */
   anchorPrefix: string;
+  /** The word for «project» in the page's language, for the screen-reader label. */
+  projectWord: string;
 };
 
 type CardStyle = CSSProperties & {
@@ -48,7 +50,7 @@ function visitSeed(): number {
   return seed;
 }
 
-export default function ObjectField({ objects, label, describedBy, anchorPrefix }: Props) {
+export default function ObjectField({ objects, label, describedBy, anchorPrefix, projectWord }: Props) {
   const fieldRef = useRef<HTMLElement>(null);
   const [width, setWidth] = useState(SERVER_WIDTH);
   const [seed, setSeed] = useState(SERVER_SEED);
@@ -115,8 +117,6 @@ export default function ObjectField({ objects, label, describedBy, anchorPrefix 
           '--object-scale': Number(placement.objectScale.toFixed(3)),
           '--object-offset': `${placement.objectOffset.toFixed(1)}px`,
         };
-        // Preview only: an object with an open question gets a badge.
-        const issues = object.issues ?? [];
         return (
           <a
             key={object.id}
@@ -125,16 +125,12 @@ export default function ObjectField({ objects, label, describedBy, anchorPrefix 
             href={object.href}
             style={style}
             data-testid="field-object"
-            data-issues={issues.length > 0 ? 'true' : undefined}
-            title={issues.length > 0 ? issues.join(' · ') : undefined}
           >
             <span className="object-label">
               <b>{object.label}</b>
-              <span className="visually-hidden">, проект «{object.projectTitle}»</span>
-              {issues.length > 0 && <span className="object-issues">{issues.join(' · ')}</span>}
+              <span className="visually-hidden">, {projectWord} «{object.projectTitle}»</span>
               <span className="object-arrow" aria-hidden="true">↗</span>
             </span>
-            {issues.length > 0 && <span className="issue-badge" aria-hidden="true">!</span>}
             <span className="object-figure">
               <img
                 src={object.image.src}

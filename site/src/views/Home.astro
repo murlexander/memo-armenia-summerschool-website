@@ -1,0 +1,60 @@
+---
+import Base from '../layouts/Base.astro';
+import ObjectField from '../components/ObjectField.tsx';
+import Pending from '../components/Pending.astro';
+import { getLocalSite, href, objectAnchor, preview } from '../lib/content.ts';
+import { getFieldObjects } from '../lib/field.ts';
+import { uiFor, type Lang } from '../lib/ui.ts';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const ui = uiFor(lang);
+const site = await getLocalSite(lang);
+const objects = await getFieldObjects(lang);
+const variants = (['1', '2', '3'] as const).map((key) => ({ key, ...site.homeVariants[key] }));
+// A variant whose lead already invites the visitor to pick an object hides the shared instruction.
+const hideInstruction = variants
+  .filter((variant) => !variant.instruction)
+  .map((variant) => `html[data-home="${variant.key}"] .field-instruction{display:none}`)
+  .join('');
+---
+<Base section="lost" homeVariant={site.defaultHomeVariant}>
+  {hideInstruction && <style is:inline set:html={hideInstruction} />}
+  <section class="home-intro" aria-labelledby="home-title">
+    <h1 id="home-title" class="visually-hidden">{site.title}</h1>
+    {variants.map((variant) => (
+      <div class="home-variant" data-variant={variant.key}>
+        <p class="home-lead">{variant.lead ?? <Pending text={ui.pendingText} />}</p>
+        {variant.keywords === null && <p class="home-keywords"><Pending text={ui.pendingText} /></p>}
+        {variant.keywords && variant.keywords.length > 0 && (
+          <p class="home-keywords">
+            {variant.keywords.map((keyword, index) => (
+              <>{index > 0 && <span aria-hidden="true">{' · '}</span>}<span class="keyword">{keyword}</span>{index < variant.keywords!.length - 1 && <span class="visually-hidden">,</span>}</>
+            ))}
+          </p>
+        )}
+      </div>
+    ))}
+    <p class="field-instruction" id="field-instruction"><span aria-hidden="true">↓</span> {ui.chooseObject}</p>
+    {preview && (
+      <nav class="variant-switch" aria-label={ui.homeVariant}>
+        <span>{ui.homeVariant}:</span>
+        {variants.map((variant) => (
+          <a href={`${href('', lang)}?home=${variant.key}`} data-variant={variant.key}>{variant.key}</a>
+        ))}
+      </nav>
+    )}
+  </section>
+  <ObjectField client:load objects={objects} label={ui.objects} describedBy="field-instruction" anchorPrefix={objectAnchor('')} projectWord={ui.project} />
+</Base>
+
+{preview && (
+  <script is:inline>
+    for (const link of document.querySelectorAll('.variant-switch a')) {
+      if (link.dataset.variant === document.documentElement.dataset.home) link.setAttribute('aria-current', 'true');
+    }
+  </script>
+)}

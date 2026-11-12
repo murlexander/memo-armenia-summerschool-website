@@ -1,0 +1,11 @@
+---
+// Visible stand-in for text not yet written in this language (English and Armenian follow Russian).
+interface Props {
+  text: string;
+  /** A paragraph-sized gap rather than a word or a line. */
+  block?: boolean;
+}
+
+const { text, block = false } = Astro.props;
+---
+{block ? <p class="pending pending-block">{text}</p> : <span class="pending">{text}</span>}

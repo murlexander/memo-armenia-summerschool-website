@@ -1,0 +1,9 @@
+---
+import Place from '../../../views/Place.astro';
+import { translatedLangs } from '../../../lib/ui.ts';
+
+export const getStaticPaths = () => translatedLangs.map((lang) => ({ params: { lang } }));
+
+const { lang } = Astro.params as { lang: (typeof translatedLangs)[number] };
+---
+<Place lang={lang} />

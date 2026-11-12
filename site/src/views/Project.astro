@@ -1,0 +1,104 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import Figure from '../components/Figure.astro';
+import Pending from '../components/Pending.astro';
+import Prose from '../components/Prose.astro';
+import YouTube from '../components/YouTube.astro';
+import { href, localizeObject, localizeProject, objectAnchor, preview, type ObjectEntry, type Project } from '../lib/content.ts';
+import { issueLabels, objectIssues, projectIssues } from '../lib/issues.ts';
+import { uiFor, type Lang } from '../lib/ui.ts';
+
+interface Props {
+  lang: Lang;
+  project: Project;
+  owned: ObjectEntry[];
+  /** Preview only: objects another project owns but this one lists too. */
+  claimed: ObjectEntry[];
+}
+
+const { lang, project, owned, claimed } = Astro.props;
+const ui = uiFor(lang);
+const { data } = project;
+const text = await localizeProject(project, lang);
+const title = text.title ?? ui.pendingTitle;
+// Open questions and conflict notes are editorial notes on the Russian content, so only the Russian pages show them.
+const editorial = preview && lang === 'ru';
+const issues = editorial ? projectIssues(data, { owned: owned.length, claimed: claimed.length }) : [];
+const objects = [
+  ...owned.map(({ object, claimedBy }) => ({ object, note: claimedBy.length > 0 ? `${ui.alsoClaimedBy} «${claimedBy.map((other) => other.data.title).join('», «')}»` : '' })),
+  ...claimed.map(({ object, project: owner }) => ({ object, note: `${ui.ownedBy} «${owner.data.title}»` })),
+].map((entry) => ({
+  ...entry,
+  note: editorial ? entry.note : '',
+  marked: editorial && (entry.note !== '' || objectIssues(entry.object.data).length > 0),
+  text: localizeObject(entry.object, lang),
+}));
+const team = text.team.every((name) => name === null) && text.team.length > 0 ? null : text.team.join(', ');
+---
+<Base title={title} section="found" sectionIndex={false} description={`${title}. ${ui.team}: ${team ?? ui.pendingName}`}>
+  <article class="page-shell project">
+    <p class="back-row"><a class="back-link" href={href('found/', lang)}>← {ui.allProjects}</a></p>
+    <div class="project-layout">
+      <div class="project-main">
+        <header class="project-head">
+          {text.studio !== undefined && <p class="eyebrow">{ui.studio}: {text.studio ?? <Pending text={ui.pendingName} />}</p>}
+          <h1>{text.title ?? <Pending text={ui.pendingTitle} />}</h1>
+          <dl class="project-facts">
+            <div>
+              <dt>{ui.team}</dt>
+              <dd>{team === null ? <Pending text={ui.pendingName} /> : team || (preview ? ui.notSpecified : '')}</dd>
+            </div>
+            <div>
+              <dt>{ui.materials}</dt>
+              <dd>{text.materials === null ? <Pending text={ui.pendingText} /> : text.materials.trim() ? <Prose source={text.materials} /> : preview ? ui.notSpecified : ''}</dd>
+            </div>
+          </dl>
+        </header>
+        {issues.length > 0 && (
+          <aside class="issue-panel" aria-labelledby="open-issues">
+            <h2 id="open-issues">{ui.openIssues}</h2>
+            <ul class="issue-list">{issues.map((code) => <li>{issueLabels[code]}</li>)}</ul>
+          </aside>
+        )}
+
+        <section class="project-objects" aria-labelledby="project-objects">
+          <h2 id="project-objects" class="visually-hidden">{ui.projectObjects}</h2>
+          <ul>
+            {objects.map(({ object, note, marked, text: objectText }) => (
+              <li data-issues={marked ? 'true' : undefined}>
+                <a href={`${href('', lang)}#${objectAnchor(object.data.id)}`}>
+                  {marked && <span class="issue-badge" aria-hidden="true">!</span>}
+                  <Image src={object.data.image} alt={objectText.alt ?? ui.pendingAlt} widths={[320, 640]} sizes="320px" format="webp" />
+                  <span>{objectText.label ?? <Pending text={ui.pendingTitle} />} <span class="visually-hidden">— {ui.findOnField}</span><span aria-hidden="true">↗</span></span>
+                </a>
+                {note && <p class="object-note">{note}</p>}
+              </li>
+            ))}
+            {objects.length === 0 && preview && <li class="project-object-placeholder placeholder-box">{ui.noObject}</li>}
+          </ul>
+        </section>
+
+        {[['history', ui.history, text.history], ['from-author', ui.fromAuthor, text.fromAuthor]].map(([id, heading, body]) => (body !== '' || preview) && (
+          <section class="project-text" aria-labelledby={id}>
+            <h2 id={id}>{heading}</h2>
+            {body === null ? <Pending text={ui.pendingText} block /> : body ? <Prose source={body} /> : <p class="placeholder-text">{ui.noText}</p>}
+          </section>
+        ))}
+      </div>
+      {data.media.length === 0 && preview && (
+        <section class="project-media" aria-label={ui.media}>
+          <p class="placeholder-box project-media-placeholder">{ui.noPhotos}</p>
+        </section>
+      )}
+      {data.media.length > 0 && (
+        <section class="project-media" aria-labelledby="media">
+          <h2 id="media">{ui.media}</h2>
+          {data.media.map((item, index) => item.type === 'image'
+            ? <Figure src={item.src} alt={text.media[index].alt} caption={text.media[index].caption} credit={item.credit} />
+            : <YouTube id={item.id} title={text.media[index].alt ?? ui.pendingTitle} poster={item.poster} />)}
+        </section>
+      )}
+    </div>
+  </article>
+</Base>

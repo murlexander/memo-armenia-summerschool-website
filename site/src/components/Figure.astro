@@ -2,11 +2,13 @@
 // Photo with caption and credit. Used on project pages and in MDX (the longread).
 import type { ImageMetadata } from 'astro';
 import { Image } from 'astro:assets';
-import { ui } from '../lib/ui.ts';
+import { pageLocation } from '../lib/content.ts';
+import { uiFor } from '../lib/ui.ts';
 
 interface Props {
   src: ImageMetadata;
-  alt: string;
+  /** null: not written yet in this page's language. */
+  alt: string | null;
   caption?: string;
   credit?: string;
   /** Eager-load images that are likely above the fold. */
@@ -14,12 +16,13 @@ interface Props {
 }
 
 const { src, alt, caption, credit, eager = false } = Astro.props;
+const ui = uiFor(pageLocation(Astro.url).lang);
 const widths = [480, 960, 1440, 2000].filter((width) => width < src.width).concat(src.width > 2000 ? [] : [src.width]);
 ---
 <figure class="media-figure">
   <Image
     src={src}
-    alt={alt}
+    alt={alt ?? ui.pendingAlt}
     widths={widths}
     sizes="(min-width: 960px) 900px, calc(100vw - 2rem)"
     loading={eager ? 'eager' : 'lazy'}

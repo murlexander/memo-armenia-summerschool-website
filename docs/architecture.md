@@ -27,7 +27,7 @@ Rename nothing in `prototype/` beforehand. The new site replaces it.
 | `/found/<slug>/` | Project page |
 | `/pokr-ayrum/` | ПОКР АЙРУМ longread |
 
-Russian lives at the root. `/en/` and `/hy/` are reserved for later; the language switcher shows only languages that exist for the current page, and nothing silently falls back to another language. During review, `?home=1|2|3` switches the home text variant; the chosen variant becomes the default.
+Russian lives at the root; `/en/` and `/hy/` mirror every page (views in `site/src/views/`, thin routes in `site/src/pages/`). A fixed ENG / RUS / ARM switch in the bottom-right corner links to the same page in each language. Russian is the working version; English and Armenian follow its layout and show a visible placeholder (`Pending`) for every text not yet translated, never Russian text. Open questions and conflict notes appear on the Russian pages only. During review, `?home=1|2|3` switches the home text variant; the chosen variant becomes the default.
 
 ## Content model
 
@@ -38,7 +38,9 @@ site.yaml                         title, header phrase, menu, home variants (3 h
 projects/<project-id>/ru.md       one project, all in frontmatter; its images sit alongside in media/
 objects/<object-id>/index.yaml    one object: projectId, label, alt text, pixel size, alpha bounds
 objects/<object-id>/image.png     the cut-out, transparent background
-pages/pokr-ayrum/ru.mdx           longread; images alongside
+pages/pokr-ayrum/ru.mdx           longread; images alongside (en.mdx, hy.mdx for translations)
+projects/<project-id>/en.md, hy.md  optional translations: title, studio, team, materials, history, fromAuthor, media alt/caption
+site.en.yaml, site.hy.yaml        optional translations of site.yaml text (objects carry theirs under `translations`)
 ```
 
 - **IDs are permanent and ASCII.** Object IDs come from the team's photo numbers (`obect_001_01_X1_0056.jpg` becomes `o0056`). Project IDs are assigned at first import (`p001`…) and never reused. Slugs are transliterated titles; once published, a slug only changes with a redirect from the old one. Titles, file names and sheet rows are mutable and are never used as keys.

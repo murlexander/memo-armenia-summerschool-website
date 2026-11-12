@@ -1,25 +1,27 @@
 ---
-import { href } from '../lib/content.ts';
-import type { SiteData } from '../lib/schemas.ts';
-import { ui } from '../lib/ui.ts';
+import Pending from './Pending.astro';
+import { href, type LocalSite } from '../lib/content.ts';
+import { uiFor, type Lang } from '../lib/ui.ts';
 
 interface Props {
-  site: SiteData;
+  site: LocalSite;
+  lang: Lang;
   section?: 'lost' | 'found' | 'place';
   sectionIndex: boolean;
 }
 
-const { site, section, sectionIndex } = Astro.props;
+const { site, lang, section, sectionIndex } = Astro.props;
+const ui = uiFor(lang);
 const current = (name: string) => (section === name ? (sectionIndex ? 'page' : 'true') : undefined);
 ---
 <header class="site-header">
   <nav class="title-menu" aria-label={ui.sections}>
-    <a href={href('')} aria-current={current('lost')}>{site.menu.lost}</a>
+    <a href={href('', lang)} aria-current={current('lost')}>{site.menu.lost}</a>
     <span class="title-amp" aria-hidden="true">&amp;</span>
-    <a href={href('found/')} aria-current={current('found')}>{site.menu.found}</a>
+    <a href={href('found/', lang)} aria-current={current('found')}>{site.menu.found}</a>
     <span class="title-break" aria-hidden="true"></span>
     {/* One text, so the underline runs under both words; word-spacing matches the title's gaps. */}
-    <a class="title-place" href={href('pokr-ayrum/')} aria-current={current('place')}>{site.menu.place}</a>
+    <a class="title-place" href={href('pokr-ayrum/', lang)} aria-current={current('place')}>{site.menu.place}</a>
   </nav>
-  {site.phrase && <p class="site-phrase">{site.phrase}</p>}
+  {site.phrase !== undefined && <p class="site-phrase">{site.phrase ?? <Pending text={ui.pendingText} />}</p>}
 </header>

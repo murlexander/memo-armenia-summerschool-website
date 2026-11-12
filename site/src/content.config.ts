@@ -4,7 +4,7 @@ import { parse as parseYaml } from 'yaml';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { contentDir, isPreview } from './lib/build-env.ts';
-import { objectSchema, pageSchema, projectSchema, siteSchema } from './lib/schemas.ts';
+import { objectSchema, pageSchema, projectSchema, projectTranslationSchema, siteSchema, siteTranslationSchema } from './lib/schemas.ts';
 
 const root = contentDir();
 const base = (...segments: string[]) => pathToFileURL(path.join(root, ...segments) + path.sep);
@@ -48,9 +48,29 @@ const objects = defineCollection({
   schema: ({ image }) => objectSchema(image),
 });
 
+// Russian is the page's own id ("pokr-ayrum"); translations are "pokr-ayrum/en", "pokr-ayrum/hy".
 const pages = defineCollection({
-  loader: publishedOnly(glob({ pattern: '*/ru.mdx', base: base('pages'), generateId: ({ entry }) => entry.split('/')[0] })),
+  loader: publishedOnly(glob({
+    pattern: '*/{ru,en,hy}.mdx',
+    base: base('pages'),
+    generateId: ({ entry }) => {
+      const [dir, file] = entry.split('/');
+      const lang = file.replace(/\.mdx$/, '');
+      return lang === 'ru' ? dir : `${dir}/${lang}`;
+    },
+  })),
   schema: pageSchema,
+});
+
+// English and Armenian text for projects, keyed "p002/en". Images and structure stay in ru.md.
+const projectTranslations = defineCollection({
+  loader: glob({ pattern: '*/{en,hy}.md', base: base('projects'), generateId: ({ entry }) => entry.replace(/\.md$/, '') }),
+  schema: projectTranslationSchema,
+});
+
+const siteTranslations = defineCollection({
+  loader: glob({ pattern: 'site.{en,hy}.yaml', base: pathToFileURL(root + path.sep), generateId: ({ entry }) => entry.split('.')[1] }),
+  schema: siteTranslationSchema,
 });
 
 const site = defineCollection({
@@ -59,4 +79,4 @@ const site = defineCollection({
   schema: siteSchema,
 });
 
-export const collections = { projects, objects, pages, site };
+export const collections = { projects, objects, pages, site, projectTranslations, siteTranslations };

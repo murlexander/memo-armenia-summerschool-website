@@ -1,8 +1,21 @@
-// Interface strings (Russian). Editorial copy lives in the content directory, not here.
-export const ui = {
+// Interface strings and language routing. Editorial copy lives in the content directory, not here.
+// Russian is the working language; English and Armenian follow the same pages and show visible
+// placeholders wherever their content has not been written yet.
+
+export const langs = ['en', 'ru', 'hy'] as const;
+export type Lang = (typeof langs)[number];
+export const defaultLang = 'ru' satisfies Lang;
+/** Languages served under their own prefix (/en/, /hy/); Russian lives at the root. */
+export const translatedLangs = ['en', 'hy'] as const;
+
+/** Labels of the language switch, in its order. */
+export const langLabels: Record<Lang, string> = { en: 'ENG', ru: 'RUS', hy: 'ARM' };
+
+const ru = {
   lang: 'ru',
   skipToContent: 'К содержанию',
   sections: 'Разделы сайта',
+  language: 'Язык',
   objects: 'Предметы',
   chooseObject: 'Выберите предмет, чтобы открыть его проект.',
   homeVariant: 'Вариант главной',
@@ -15,6 +28,7 @@ export const ui = {
   fromAuthor: 'От автора',
   media: 'Фото и видео',
   projectObjects: 'Предметы проекта',
+  project: 'проект',
   findOnField: 'Найти на поле LOST',
   allProjects: 'Все проекты',
   playVideo: 'Смотреть видео',
@@ -32,4 +46,98 @@ export const ui = {
   openIssues: 'Нужно решить',
   alsoClaimedBy: 'Указан и у проекта',
   ownedBy: 'Принадлежит проекту',
-} as const;
+  // Untranslated content (English and Armenian only)
+  pendingTitle: 'Название',
+  pendingText: 'Текст готовится',
+  pendingName: 'Имя',
+  pendingAlt: 'Описание изображения готовится',
+};
+
+export type UiStrings = { [K in keyof typeof ru]: string };
+
+const en: UiStrings = {
+  lang: 'en',
+  skipToContent: 'Skip to content',
+  sections: 'Site sections',
+  language: 'Language',
+  objects: 'Objects',
+  chooseObject: 'Choose an object to open its project.',
+  homeVariant: 'Home variant',
+  catalogue: 'All projects',
+  catalogueEmpty: 'Projects are coming soon.',
+  team: 'Team',
+  studio: 'Studio',
+  materials: 'Made from',
+  history: 'Project story',
+  fromAuthor: 'From the author',
+  media: 'Photos and video',
+  projectObjects: 'Project objects',
+  project: 'project',
+  findOnField: 'Find on the LOST field',
+  allProjects: 'All projects',
+  playVideo: 'Play video',
+  photoCredit: 'Photo',
+  longreadPending: 'The text about Pokr Ayrum is being written.',
+  notFoundTitle: 'Page not found',
+  notFoundText: 'The link may be out of date. Start from the object field or the project list.',
+  instagram: 'Instagram',
+  partners: 'Partners',
+  noObject: 'No object chosen',
+  noText: 'No text yet',
+  noPhotos: 'No photos yet',
+  notSpecified: 'not specified',
+  openIssues: 'To decide',
+  alsoClaimedBy: 'Also listed by',
+  ownedBy: 'Belongs to',
+  pendingTitle: 'Title',
+  pendingText: 'English text coming',
+  pendingName: 'Name',
+  pendingAlt: 'Image description coming',
+};
+
+const hy: UiStrings = {
+  lang: 'hy',
+  skipToContent: 'Անցնել բովանդակությանը',
+  sections: 'Կայքի բաժիններ',
+  language: 'Լեզու',
+  objects: 'Առարկաներ',
+  chooseObject: 'Ընտրեք առարկա՝ նրա նախագիծը բացելու համար։',
+  homeVariant: 'Գլխավոր էջի տարբերակ',
+  catalogue: 'Բոլոր նախագծերը',
+  catalogueEmpty: 'Նախագծերը շուտով կհայտնվեն։',
+  team: 'Թիմ',
+  studio: 'Ստուդիա',
+  materials: 'Ինչից է պատրաստված',
+  history: 'Նախագծի պատմությունը',
+  fromAuthor: 'Հեղինակից',
+  media: 'Լուսանկարներ և տեսանյութեր',
+  projectObjects: 'Նախագծի առարկաները',
+  project: 'նախագիծ',
+  findOnField: 'Գտնել LOST դաշտում',
+  allProjects: 'Բոլոր նախագծերը',
+  playVideo: 'Դիտել տեսանյութը',
+  photoCredit: 'Լուսանկար',
+  longreadPending: 'Պոկր Այրումի մասին տեքստը պատրաստվում է։',
+  notFoundTitle: 'Էջը չի գտնվել',
+  notFoundText: 'Հնարավոր է՝ հղումը հնացած է։ Սկսեք առարկաների դաշտից կամ նախագծերի ցանկից։',
+  instagram: 'Instagram',
+  partners: 'Գործընկերներ',
+  noObject: 'Առարկան ընտրված չէ',
+  noText: 'Տեքստը դեռ չկա',
+  noPhotos: 'Լուսանկարները դեռ չկան',
+  notSpecified: 'նշված չէ',
+  openIssues: 'Պետք է որոշել',
+  alsoClaimedBy: 'Նշված է նաև',
+  ownedBy: 'Պատկանում է',
+  pendingTitle: 'Վերնագիր',
+  pendingText: 'Հայերեն տեքստը պատրաստվում է',
+  pendingName: 'Անուն',
+  pendingAlt: 'Պատկերի նկարագրությունը պատրաստվում է',
+};
+
+const strings: Record<Lang, UiStrings> = { ru, en, hy };
+
+export const uiFor = (lang: Lang): UiStrings => strings[lang];
+
+/** Russian strings, for code that runs outside a page (checks, tests). */
+export const ui = ru;

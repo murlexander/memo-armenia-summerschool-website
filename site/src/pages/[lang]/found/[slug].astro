@@ -1,0 +1,11 @@
+---
+import ProjectView from '../../../views/Project.astro';
+import { projectPages } from '../../../lib/content.ts';
+import { translatedLangs } from '../../../lib/ui.ts';
+
+export async function getStaticPaths() {
+  const pages = await projectPages();
+  return translatedLangs.flatMap((lang) => pages.map(({ slug, props }) => ({ params: { lang, slug }, props: { ...props, lang } })));
+}
+---
+<ProjectView {...Astro.props} />
