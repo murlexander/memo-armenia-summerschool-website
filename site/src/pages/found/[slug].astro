@@ -29,54 +29,58 @@ const { data } = project;
 <Base title={data.title} section="found" sectionIndex={false} description={`${data.title}. ${ui.team}: ${data.team.join(', ')}`}>
   <article class="page-shell project">
     <p class="back-row"><a class="back-link" href={href('found/')}>← {ui.allProjects}</a></p>
-    <header class="project-head">
-      {data.studio && <p class="eyebrow">{ui.studio}: {data.studio}</p>}
-      <h1>{data.title}</h1>
-      <dl class="project-facts">
-        <div>
-          <dt>{ui.team}</dt>
-          <dd>{data.team.join(', ')}</dd>
-        </div>
-        <div>
-          <dt>{ui.materials}</dt>
-          <dd><Prose source={data.materials} /></dd>
-        </div>
-      </dl>
-    </header>
+    <div class="project-layout">
+      <div class="project-main">
+        <header class="project-head">
+          {data.studio && <p class="eyebrow">{ui.studio}: {data.studio}</p>}
+          <h1>{data.title}</h1>
+          <dl class="project-facts">
+            <div>
+              <dt>{ui.team}</dt>
+              <dd>{data.team.join(', ')}</dd>
+            </div>
+            <div>
+              <dt>{ui.materials}</dt>
+              <dd><Prose source={data.materials} /></dd>
+            </div>
+          </dl>
+        </header>
 
-    <section class="project-objects" aria-labelledby="project-objects">
-      <h2 id="project-objects" class="visually-hidden">{ui.projectObjects}</h2>
-      <ul>
-        {objects.map((object) => (
-          <li>
-            <a href={`${href('')}#${objectAnchor(object.data.id)}`}>
-              <Image src={object.data.image} alt={object.data.alt} widths={[320, 640]} sizes="320px" format="webp" />
-              <span>{object.data.label} <span class="visually-hidden">— {ui.findOnField}</span><span aria-hidden="true">↗</span></span>
-            </a>
-          </li>
-        ))}
-      </ul>
-    </section>
+        <section class="project-objects" aria-labelledby="project-objects">
+          <h2 id="project-objects" class="visually-hidden">{ui.projectObjects}</h2>
+          <ul>
+            {objects.map((object) => (
+              <li>
+                <a href={`${href('')}#${objectAnchor(object.data.id)}`}>
+                  <Image src={object.data.image} alt={object.data.alt} widths={[320, 640]} sizes="320px" format="webp" />
+                  <span>{object.data.label} <span class="visually-hidden">— {ui.findOnField}</span><span aria-hidden="true">↗</span></span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
 
-    {data.history.trim() && (
-      <section class="project-text" aria-labelledby="history">
-        <h2 id="history">{ui.history}</h2>
-        <Prose source={data.history} />
-      </section>
-    )}
-    {data.fromAuthor.trim() && (
-      <section class="project-text" aria-labelledby="from-author">
-        <h2 id="from-author">{ui.fromAuthor}</h2>
-        <Prose source={data.fromAuthor} />
-      </section>
-    )}
-    {data.media.length > 0 && (
-      <section class="project-media" aria-labelledby="media">
-        <h2 id="media">{ui.media}</h2>
-        {data.media.map((item) => item.type === 'image'
-          ? <Figure src={item.src} alt={item.alt} caption={item.caption} credit={item.credit} />
-          : <YouTube id={item.id} title={item.title} poster={item.poster} />)}
-      </section>
-    )}
+        {data.history.trim() && (
+          <section class="project-text" aria-labelledby="history">
+            <h2 id="history">{ui.history}</h2>
+            <Prose source={data.history} />
+          </section>
+        )}
+        {data.fromAuthor.trim() && (
+          <section class="project-text" aria-labelledby="from-author">
+            <h2 id="from-author">{ui.fromAuthor}</h2>
+            <Prose source={data.fromAuthor} />
+          </section>
+        )}
+      </div>
+      {data.media.length > 0 && (
+        <section class="project-media" aria-labelledby="media">
+          <h2 id="media">{ui.media}</h2>
+          {data.media.map((item) => item.type === 'image'
+            ? <Figure src={item.src} alt={item.alt} caption={item.caption} credit={item.credit} />
+            : <YouTube id={item.id} title={item.title} poster={item.poster} />)}
+        </section>
+      )}
+    </div>
   </article>
 </Base>

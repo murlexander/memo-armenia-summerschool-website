@@ -69,26 +69,20 @@ h1, h2, h3 { line-height: 1.05; letter-spacing: -.02em; font-weight: 600; }
 
 /* Header: the three menu words compose the title. */
 .site-header { position: relative; z-index: 20; padding: clamp(1rem, 3vw, 2.25rem) var(--gutter) 0; container-type: inline-size; }
-/* Landscape: the whole title is one line across the full width. Portrait: one word per line
-   (LOST & / FOUND / ПОКР / АЙРУМ), sized so the longest word spans the width.
+/* Landscape: the whole title is one line across the full width. Portrait: two lines
+   (LOST & FOUND / ПОКР АЙРУМ), sized so the first, longer line spans the width.
    Font sizes come from the words' measured widths in Site Sans 700 at -.045em: the full line
-   with its gaps ≈ 13.6em, the longest word ≈ 3.45em. Re-measure if the menu words or the font change. */
+   with its gaps ≈ 13.6em, «LOST & FOUND» ≈ 6.94em, «ПОКР АЙРУМ» ≈ 6.4em. Re-measure if the menu words or the font change. */
 .title-menu {
   display: flex; flex-wrap: wrap; align-items: baseline; column-gap: .28em;
-  font-size: 28.4cqi;
+  font-size: 14cqi;
   font-weight: 700; line-height: 1.16; letter-spacing: -.045em; text-transform: uppercase;
 }
 .title-break { flex-basis: 100%; height: 0; }
-.title-menu .title-place { flex-direction: column; align-items: flex-start; }
+.title-menu .title-place { gap: .28em; }
 @media (orientation: landscape) {
   .title-menu { flex-wrap: nowrap; justify-content: space-between; white-space: nowrap; font-size: 7.2cqi; line-height: 1.02; }
   .title-break { display: none; }
-  .title-menu .title-place { flex-direction: row; gap: .28em; }
-}
-/* Portrait tablets: «ПОКР АЙРУМ» shares one line, so the title takes three lines; it is ≈ 6.4em wide. */
-@media (orientation: portrait) and (min-width: 600px) {
-  .title-menu { font-size: 15.4cqi; }
-  .title-menu .title-place { flex-direction: row; gap: .28em; }
 }
 .title-menu a {
   display: inline-flex; align-items: center;
@@ -185,7 +179,7 @@ html.js .object-field[data-ready="false"] { opacity: 0; animation: field-reveal 
 .object-card:target { outline: 3px dashed var(--clay); outline-offset: 6px; }
 
 /* Shared page layout */
-.page-shell { max-width: 1180px; margin: 0 var(--gutter); padding: clamp(1.5rem, 4vw, 3.5rem) 0 clamp(4rem, 9vw, 7rem); }
+.page-shell { margin: 0 var(--gutter); padding: clamp(1.5rem, 4vw, 3.5rem) 0 clamp(4rem, 9vw, 7rem); }
 .page-head h1 { margin: 0; font-size: clamp(2.6rem, 7vw, 5.5rem); letter-spacing: -.04em; overflow-wrap: anywhere; }
 .page-sub { margin: .75rem 0 0; color: var(--muted); font-size: clamp(1rem, 1.6vw, 1.2rem); }
 .eyebrow { margin: 0 0 .75rem; color: var(--muted); font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; }
@@ -217,6 +211,12 @@ html.js .object-field[data-ready="false"] { opacity: 0; animation: field-reveal 
 .project-text h2, .project-media h2 { font-size: clamp(1.5rem, 3vw, 2.2rem); margin: 0 0 1rem; }
 .project-media { margin-top: clamp(3rem, 7vw, 5rem); display: grid; gap: clamp(1.5rem, 4vw, 3rem); max-width: 900px; }
 .project-media h2 { margin-bottom: 0; }
+/* Wide screens: text on the left, photos down the right; the photo grid adds columns as the page widens or zooms out. */
+@media (min-width: 1100px) {
+  .project-layout { display: grid; grid-template-columns: minmax(0, 40rem) minmax(0, 1fr); column-gap: clamp(3rem, 6vw, 7rem); align-items: start; }
+  .project-media { grid-template-columns: repeat(auto-fill, minmax(min(100%, 24rem), 1fr)); gap: 1.5rem; max-width: none; margin-top: 0; }
+  .project-media h2 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
 
 .prose { overflow-wrap: break-word; }
 .prose p, .prose ul, .prose ol { margin: 0 0 1rem; }
@@ -269,6 +269,11 @@ html.js .object-field[data-ready="false"] { opacity: 0; animation: field-reveal 
 .footer-partners { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; margin: 0; padding: 0; list-style: none; }
 .footer-social { margin: 0; }
 .footer-social a { display: inline-flex; align-items: center; min-height: 48px; }
+@media (min-width: 900px) {
+  .site-footer { grid-template-columns: minmax(0, 2fr) minmax(0, 2fr) minmax(0, 1fr); column-gap: clamp(2rem, 5vw, 5rem); }
+  .site-footer { align-items: center; }
+  .footer-social { justify-self: end; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
