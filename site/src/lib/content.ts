@@ -23,13 +23,12 @@ export async function getProjects(): Promise<Project[]> {
 
 export type ObjectEntry = {
   object: MuseumObject;
-  /** Undefined only in preview, for an object no project has taken yet. */
-  project?: Project;
+  project: Project;
   /** Preview only: other projects that list the same object. */
   claimedBy: Project[];
 };
 
-/** Visible objects whose project is visible too (or, in preview, that have none yet), in ID order. */
+/** Visible objects whose project is visible too, in ID order. Objects no project has taken yet are left out. */
 export async function getObjects(): Promise<ObjectEntry[]> {
   const projects = new Map((await getProjects()).map((project) => [project.data.id, project]));
   const objects = await getCollection('objects', visible);
@@ -37,7 +36,7 @@ export async function getObjects(): Promise<ObjectEntry[]> {
     .flatMap((object) => {
       const { projectId, alsoClaimedBy } = object.data;
       const project = projectId ? projects.get(projectId) : undefined;
-      if (projectId ? !project : !preview) return [];
+      if (!project) return [];
       const claimedBy = alsoClaimedBy.flatMap((id) => projects.get(id) ?? []);
       return [{ object, project, claimedBy }];
     })

@@ -6,7 +6,7 @@ export const projectIssueCodes = ['title-tentative', 'team-unconfirmed', 'not-in
 /** Problems recorded by hand in an object's `issues` list. */
 export const objectIssueCodes = ['object-disputed', 'cutout-check'] as const;
 /** Problems derived from the content itself. */
-const derivedIssueCodes = ['no-object', 'shared-object', 'no-text', 'no-photos', 'no-team', 'no-project'] as const;
+const derivedIssueCodes = ['no-object', 'shared-object', 'no-text', 'no-photos', 'no-team'] as const;
 
 export type IssueCode = (typeof projectIssueCodes)[number] | (typeof objectIssueCodes)[number] | (typeof derivedIssueCodes)[number];
 
@@ -22,7 +22,6 @@ export const issueLabels: Record<IssueCode, string> = {
   'no-text': 'Текста пока нет',
   'no-photos': 'Фото пока нет',
   'no-team': 'Команда не указана',
-  'no-project': 'Предмет без проекта',
 };
 
 export function projectIssues(
@@ -38,9 +37,8 @@ export function projectIssues(
   return [...new Set([...derived, ...project.issues])];
 }
 
-export function objectIssues(object: { issues: readonly IssueCode[]; projectId?: string; alsoClaimedBy: string[] }): IssueCode[] {
+export function objectIssues(object: { issues: readonly IssueCode[]; alsoClaimedBy: string[] }): IssueCode[] {
   const derived: IssueCode[] = [];
-  if (!object.projectId) derived.push('no-project');
   if (object.alsoClaimedBy.length > 0) derived.push('shared-object');
   return [...new Set([...derived, ...object.issues])];
 }

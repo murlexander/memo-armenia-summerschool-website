@@ -30,7 +30,7 @@ const issues = preview ? projectIssues(data, { owned: owned.length, claimed: cla
 // Each object with the note that marks a conflict: who else lists it, or who owns it.
 const objects = [
   ...owned.map(({ object, claimedBy }) => ({ object, note: claimedBy.length > 0 ? `${ui.alsoClaimedBy} «${claimedBy.map((other) => other.data.title).join('», «')}»` : '' })),
-  ...claimed.map(({ object, project: owner }) => ({ object, note: `${ui.ownedBy} «${owner?.data.title}»` })),
+  ...claimed.map(({ object, project: owner }) => ({ object, note: `${ui.ownedBy} «${owner.data.title}»` })),
 ].map((entry) => ({ ...entry, marked: preview && (entry.note !== '' || objectIssues(entry.object.data).length > 0) }));
 const placeholder = (value: string) => (preview && !value.trim() ? ui.notSpecified : value);
 ---

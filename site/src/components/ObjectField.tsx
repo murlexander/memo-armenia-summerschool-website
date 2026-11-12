@@ -115,28 +115,26 @@ export default function ObjectField({ objects, label, describedBy, anchorPrefix 
           '--object-scale': Number(placement.objectScale.toFixed(3)),
           '--object-offset': `${placement.objectOffset.toFixed(1)}px`,
         };
-        // Preview only: an object without a project is a faded, inert placeholder; other open questions get a badge.
+        // Preview only: an object with an open question gets a badge.
         const issues = object.issues ?? [];
-        const Card = object.href ? 'a' : 'div';
         return (
-          <Card
+          <a
             key={object.id}
             id={`${anchorPrefix}${object.id}`}
             className="object-card"
             href={object.href}
             style={style}
             data-testid="field-object"
-            data-orphan={object.href ? undefined : 'true'}
             data-issues={issues.length > 0 ? 'true' : undefined}
             title={issues.length > 0 ? issues.join(' · ') : undefined}
           >
             <span className="object-label">
               <b>{object.label}</b>
-              {object.projectTitle && <span className="visually-hidden">, проект «{object.projectTitle}»</span>}
+              <span className="visually-hidden">, проект «{object.projectTitle}»</span>
               {issues.length > 0 && <span className="object-issues">{issues.join(' · ')}</span>}
-              {object.href && <span className="object-arrow" aria-hidden="true">↗</span>}
+              <span className="object-arrow" aria-hidden="true">↗</span>
             </span>
-            {issues.length > 0 && object.href && <span className="issue-badge" aria-hidden="true">!</span>}
+            {issues.length > 0 && <span className="issue-badge" aria-hidden="true">!</span>}
             <span className="object-figure">
               <img
                 src={object.image.src}
@@ -155,7 +153,7 @@ export default function ObjectField({ objects, label, describedBy, anchorPrefix 
                 }}
               />
             </span>
-          </Card>
+          </a>
         );
       })}
     </section>

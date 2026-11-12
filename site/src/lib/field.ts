@@ -18,9 +18,9 @@ export async function getFieldObjects(): Promise<FieldObject[]> {
     const image = await getImage({ src: data.image, format: 'webp', widths, width: widths.at(-1) });
     return {
       id: data.id,
-      href: project ? projectHref(project.data.slug) : undefined,
+      href: projectHref(project.data.slug),
       label: data.label,
-      projectTitle: project?.data.title,
+      projectTitle: project.data.title,
       alt: data.alt,
       image: {
         src: image.src,

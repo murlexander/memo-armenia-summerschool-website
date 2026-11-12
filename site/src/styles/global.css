@@ -179,12 +179,8 @@ html.js .object-field[data-ready="false"] { opacity: 0; animation: field-reveal 
 .object-card:focus-visible { outline: 3px solid var(--lichen); outline-offset: 6px; }
 .object-card:target { outline: 3px dashed var(--clay); outline-offset: 6px; }
 
-/* Team preview: open questions. Faded = no project yet; a clay «!» = something the team has to decide;
+/* Team preview: open questions. A clay «!» = something the team has to decide;
    dashed boxes stand in for a missing object, text or photos. */
-.object-card[data-orphan] { cursor: default; }
-.object-card[data-orphan] .object-figure { opacity: .4; filter: grayscale(.75); }
-.object-field[data-mode="fine"] .object-card[data-orphan]:hover { transform: none; filter: none; }
-.object-field[data-mode="fine"] .object-card[data-orphan]:hover .object-figure { transform: translateX(var(--object-offset)) rotate(var(--object-rotation)) scale(var(--object-scale)); }
 .object-label { flex-wrap: wrap; }
 .object-issues { flex-basis: 100%; color: var(--clay); font-size: .78rem; font-weight: 600; }
 .issue-badge {
