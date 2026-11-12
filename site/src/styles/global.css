@@ -105,7 +105,7 @@ h1, h2, h3 { line-height: 1.05; letter-spacing: -.02em; font-weight: 600; }
 .site-phrase { max-width: 52ch; margin: .6rem 0 0; color: var(--muted); font-size: clamp(.95rem, 1.4vw, 1.1rem); line-height: 1.45; }
 
 /* LOST (home) */
-.home-intro { display: grid; gap: 1rem; padding: clamp(2rem, 6vw, 5rem) var(--gutter) 0; }
+.home-intro { display: grid; gap: 1rem; padding: clamp(1.5rem, 4vw, 3.5rem) var(--gutter) 0; }
 .home-variant { display: none; }
 html[data-home="1"] .home-variant[data-variant="1"],
 html[data-home="2"] .home-variant[data-variant="2"],
@@ -117,6 +117,18 @@ html[data-home="3"] .home-variant[data-variant="3"] { display: block; }
 .variant-switch { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; font-size: .9rem; color: var(--muted); }
 .variant-switch a { display: inline-grid; place-items: center; min-width: 48px; min-height: 48px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink); text-decoration: none; }
 .variant-switch a[aria-current] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+/* Wide landscape screens use the width the title spans: the lead on the left, the instruction
+   and switcher on the right, and the keywords as a full-width band below. */
+@media (orientation: landscape) and (min-width: 900px) {
+  .home-intro { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); column-gap: clamp(2rem, 5vw, 5rem); row-gap: 1.25rem; align-content: start; }
+  html[data-home="1"] .home-variant[data-variant="1"],
+  html[data-home="2"] .home-variant[data-variant="2"],
+  html[data-home="3"] .home-variant[data-variant="3"] { display: contents; }
+  .home-lead { grid-column: 1; grid-row: 1 / span 2; max-width: none; font-size: clamp(1.5rem, 2.9vw, 2.9rem); line-height: 1.2; }
+  .field-instruction { grid-column: 2; grid-row: 1; padding-top: .5em; }
+  .variant-switch { grid-column: 2; grid-row: 2; align-self: start; }
+  .home-keywords { grid-column: 1 / -1; grid-row: 3; margin: .5rem 0 0; max-width: none; font-size: clamp(1.1rem, 1.75vw, 1.7rem); line-height: 1.5; }
+}
 
 /* Object field (React island, docs/collage-algorithm.md) */
 .object-field { position: relative; width: 100%; margin-top: clamp(1rem, 3vw, 3rem); isolation: isolate; overflow-x: clip; }
