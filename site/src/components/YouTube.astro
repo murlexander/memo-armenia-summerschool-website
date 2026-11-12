@@ -1,0 +1,42 @@
+---
+// Click-to-play YouTube: nothing is requested from YouTube until the visitor presses play.
+// Without JavaScript the facade is a plain link to the video.
+import type { ImageMetadata } from 'astro';
+import { Image } from 'astro:assets';
+import { ui } from '../lib/ui.ts';
+
+interface Props {
+  id: string;
+  title: string;
+  poster: ImageMetadata;
+}
+
+const { id, title, poster } = Astro.props;
+---
+<figure class="media-figure video-figure">
+  <div class="video-frame">
+    <a class="video-facade" href={`https://www.youtube.com/watch?v=${encodeURIComponent(id)}`} data-youtube-id={id} data-youtube-title={title}>
+      <Image src={poster} alt="" widths={[480, 960, 1440].filter((width) => width <= poster.width)} sizes="(min-width: 960px) 900px, calc(100vw - 2rem)" loading="lazy" format="webp" />
+      <span class="video-play" aria-hidden="true"></span>
+      <span class="visually-hidden">{ui.playVideo}: {title}</span>
+    </a>
+  </div>
+  <figcaption>{title}</figcaption>
+</figure>
+
+<script>
+  document.addEventListener('click', (event) => {
+    if (!(event.target instanceof Element)) return;
+    const facade = event.target.closest<HTMLAnchorElement>('a[data-youtube-id]');
+    if (!facade || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    const iframe = document.createElement('iframe');
+    iframe.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(facade.dataset.youtubeId ?? '')}?autoplay=1&rel=0`;
+    iframe.title = facade.dataset.youtubeTitle ?? '';
+    iframe.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+    iframe.allowFullscreen = true;
+    iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+    facade.replaceWith(iframe);
+    iframe.focus();
+  });
+</script>

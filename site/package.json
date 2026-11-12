@@ -1,0 +1,41 @@
+{
+  "name": "lost-and-found-pokr-ayrum-site",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.23.4"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check-content": "node scripts/check-content.ts",
+    "test": "node --test src/lib/*.test.ts",
+    "typecheck": "astro check",
+    "test:e2e": "playwright test",
+    "validate": "npm run check-content && npm test && npm run typecheck && npm run build",
+    "alpha": "SITE_PREVIEW=1 npm run check-content && SITE_PREVIEW=1 astro build",
+    "make-fixture": "node scripts/make-fixture.ts"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "^8.1.5",
+    "@astrojs/react": "^7.1.8",
+    "@fontsource-variable/noto-sans": "^5.3.0",
+    "@fontsource-variable/noto-sans-armenian": "^5.3.0",
+    "astro": "^7.4.11",
+    "marked": "^18.2.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "sharp": "^0.35.5"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.12",
+    "@playwright/test": "^1.65.0",
+    "@types/node": "^22.20.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "typescript": "^6.0.3",
+    "yaml": "^2.9.1"
+  }
+}

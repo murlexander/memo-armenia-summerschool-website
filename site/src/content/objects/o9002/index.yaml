@@ -1,0 +1,9 @@
+id: o9002
+projectId: p901
+published: true
+label: "Глиняный черепок"
+alt: "Вымышленный пример: терракотовый черепок с ровным краем"
+width: 800
+height: 900
+bounds: { x: 0.163, y: 0.133, width: 0.713, height: 0.756 }
+autoCutout: false

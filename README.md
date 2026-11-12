@@ -27,11 +27,32 @@ docs/
   references/            Design references
   brand/                 Partner marks used in tooling
 prototype/               Current Vinext + hash-routed GitHub Pages prototype (removed at the Astro cutover)
-site/                    Astro site with its content (created by the migration in docs/architecture.md)
-scripts/                 Media import and content checks (added with the first real content)
+site/                    Astro site, its content checks and a fictional fixture in site/src/content/
+scripts/                 Media import (added with the first real content)
 ```
 
 Source materials (Google Drive) and editorial records stay outside this public repository, in the private companion folder `../memo-armenia-summerschool-private/`. See [docs/content-pipeline.md](docs/content-pipeline.md).
+
+## Run the site
+
+From `site/` (Node 22.23 or later): `npm ci`, then
+
+- `npm run dev` for the dev server, at `/memo-armenia-summerschool-website/`;
+- `npm run validate` to check content, run unit tests, type-check and build into `site/dist/`;
+- `npm run test:e2e` for the Playwright smoke tests against that build (`npx playwright install chromium` once).
+
+By default the site builds from the fictional fixture in `site/src/content/`. To build from another content directory, set `SITE_CONTENT_DIR` to its absolute path.
+
+**Team alpha.** A preview build includes unpublished content, so it must be written outside this repository:
+
+```sh
+cd site
+SITE_CONTENT_DIR=/absolute/path/to/alpha-content \
+SITE_OUT_DIR=/absolute/path/outside/this/repo/alpha-site \
+npm run alpha
+```
+
+`npm run alpha` checks the content (unpublished problems count as errors) and builds with `SITE_PREVIEW=1`; the Astro cache goes to `$SITE_OUT_DIR.cache`. View it with `SITE_PREVIEW=1 SITE_OUT_DIR=… npx astro preview`. Never deploy or commit that output. `npm run dev` with `SITE_PREVIEW=1` works too, but keeps its content cache in the git-ignored `site/.astro/`.
 
 ## Run the prototype
 

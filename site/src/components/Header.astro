@@ -1,0 +1,23 @@
+---
+import { href } from '../lib/content.ts';
+import type { SiteData } from '../lib/schemas.ts';
+import { ui } from '../lib/ui.ts';
+
+interface Props {
+  site: SiteData;
+  section?: 'lost' | 'found' | 'place';
+  sectionIndex: boolean;
+}
+
+const { site, section, sectionIndex } = Astro.props;
+const current = (name: string) => (section === name ? (sectionIndex ? 'page' : 'true') : undefined);
+---
+<header class="site-header">
+  <nav class="title-menu" aria-label={ui.sections}>
+    <a href={href('')} aria-current={current('lost')}>{site.menu.lost}</a>
+    <span class="title-amp" aria-hidden="true">&amp;</span>
+    <a href={href('found/')} aria-current={current('found')}>{site.menu.found}</a>
+    <a href={href('pokr-ayrum/')} aria-current={current('place')}>{site.menu.place}</a>
+  </nav>
+  {site.phrase && <p class="site-phrase">{site.phrase}</p>}
+</header>

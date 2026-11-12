@@ -1,0 +1,24 @@
+---
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Figure from '../../components/Figure.astro';
+import YouTube from '../../components/YouTube.astro';
+import { getLongread, getSite } from '../../lib/content.ts';
+import { ui } from '../../lib/ui.ts';
+
+const site = await getSite();
+const page = await getLongread();
+const rendered = page ? await render(page) : undefined;
+const Content = rendered?.Content;
+---
+<Base title={page?.data.title ?? site.menu.place} description={page?.data.description} section="place">
+  <article class="page-shell longread">
+    <header class="page-head">
+      <h1>{page?.data.title ?? site.menu.place}</h1>
+      {page?.data.description && <p class="page-sub">{page.data.description}</p>}
+    </header>
+    <div class="prose longread-body">
+      {Content ? <Content components={{ Figure, YouTube }} /> : <p>{ui.longreadPending}</p>}
+    </div>
+  </article>
+</Base>

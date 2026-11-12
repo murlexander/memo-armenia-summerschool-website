@@ -1,0 +1,9 @@
+id: o9003
+projectId: p902
+published: true
+label: "Латунная пуговица"
+alt: "Вымышленный пример: круглая латунная пуговица с четырьмя отверстиями"
+width: 800
+height: 800
+bounds: { x: 0.138, y: 0.138, width: 0.725, height: 0.725 }
+autoCutout: false

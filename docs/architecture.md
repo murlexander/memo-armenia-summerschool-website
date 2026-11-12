@@ -31,12 +31,12 @@ Russian lives at the root. `/en/` and `/hy/` are reserved for later; the languag
 
 ## Content model
 
-Astro content collections in `site/src/content/`:
+Astro content collections, read from the directory in `SITE_CONTENT_DIR` (absolute path) or by default `site/src/content/`, which holds a small fictional fixture. Schemas live in `site/src/lib/schemas.ts` and serve both the build and the content checks.
 
 ```text
-site.yaml                         header phrase, menu, home variants, keywords → tags, footer, partner logos
-projects/<project-id>/ru.md       one project; its images sit alongside in media/
-objects/<object-id>/index.yaml    one object: projectId, label, alt text, alpha bounds
+site.yaml                         title, header phrase, menu, home variants (3 has keywords), footer
+projects/<project-id>/ru.md       one project, all in frontmatter; its images sit alongside in media/
+objects/<object-id>/index.yaml    one object: projectId, label, alt text, pixel size, alpha bounds
 objects/<object-id>/image.png     the cut-out, transparent background
 pages/pokr-ayrum/ru.mdx           longread; images alongside
 ```
@@ -44,12 +44,15 @@ pages/pokr-ayrum/ru.mdx           longread; images alongside
 - **IDs are permanent and ASCII.** Object IDs come from the team's photo numbers (`obect_001_01_X1_0056.jpg` becomes `o0056`). Project IDs are assigned at first import (`p001`…) and never reused. Slugs are transliterated titles; once published, a slug only changes with a redirect from the old one. Titles, file names and sheet rows are mutable and are never used as keys.
 - **Each object stores its `projectId` once;** a project's objects are derived. Exactly one owner per object.
 - **Project fields:** `id`, `slug`, `published` (default false), `title`, `team` (display names as approved), `materials` (Из чего сделано), `tags`, `media` (ordered typed records: `image` with alt, caption and credit, or `youtube` with ID, title and a local poster), and the two texts История проекта and От автора as separate fields.
+- **Longread:** frontmatter `title`, `description`, `published`. Images are imported relative to the file (`import photo from './media/01.jpg'`) and placed with `<Figure src={photo} alt="…" caption="…" credit="…" />`; video with `<YouTube id="…" title="…" poster={posterImport} />`. Both components are provided by the page, so the MDX file imports only its images.
 - **Media:** web masters live next to their content, at most 2400 px on the long edge, sRGB, orientation applied before metadata is stripped. The build generates responsive sizes, which stay out of git. Video is YouTube only, via `youtube-nocookie.com`, and nothing loads from YouTube (thumbnails included) until the visitor presses play.
 
 ## Publication gate
 
 - `published` is false by default and is set only by promotion in the [content pipeline](content-pipeline.md). Approval evidence stays private; public checks can only enforce structure.
-- `scripts/check-content` runs in `validate` and CI. It fails on an object without exactly one project, a project without objects, missing alt text or required fields on published content, a published project referencing unpublished objects, and duplicate IDs or slugs.
+- Normal builds drop unpublished projects, objects and pages at the content loader, so neither their data nor their images reach the output.
+- `site/scripts/check-content.ts` runs in `validate` and CI. It fails on an object without exactly one project, a project without objects, missing alt text or required fields on published content, a published project referencing unpublished objects, cut-out size or transparency mismatches, and duplicate IDs or slugs. Problems in unpublished content are warnings, except in preview.
+- **Team preview.** `SITE_PREVIEW=1` includes unpublished content, adds `noindex,nofollow` and a fixed «Альфа-версия для команды · не для распространения» banner to every page, and shows a home-variant switcher. The build refuses to run unless `SITE_OUT_DIR` is an absolute path outside this repository.
 
 ## Quality bar
 

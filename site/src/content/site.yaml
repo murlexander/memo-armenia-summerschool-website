@@ -1,0 +1,17 @@
+# Fictional fixture for the public repository. Real copy lives in the team's working doc.
+title: "Lost & Found Покр Айрум"
+phrase: "Пример подзаголовка: найденные вещи и проекты летней школы"
+menu: { lost: "LOST", found: "FOUND", place: "ПОКР АЙРУМ" }
+homeVariants:
+  "1":
+    lead: "Пример короткого описания: здесь будет пара предложений о летней школе и о том, что можно найти на сайте."
+  "2":
+    lead: "Пример приглашения: выберите предмет, чтобы открыть проект, который из него вырос."
+  "3":
+    lead: "Пример текста с ключевыми словами:"
+    keywords: ["пример", "находка", "память", "деревня", "голос"]
+defaultHomeVariant: "3"
+footer:
+  text: "Совместный проект летнего лагеря «Человек в истории» и Green Camp"
+  partners: ["Человек в истории", "Zukunft MEMORIAL", "Green Camp"]
+  instagram: "personinhistory"

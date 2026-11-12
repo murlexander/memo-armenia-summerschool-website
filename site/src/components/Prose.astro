@@ -1,0 +1,10 @@
+---
+import { markdown } from '../lib/markdown.ts';
+
+interface Props {
+  source: string;
+}
+
+const html = markdown(Astro.props.source);
+---
+<div class="prose" set:html={html} />

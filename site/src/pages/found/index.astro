@@ -1,0 +1,42 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import { getObjects, getProjects, getSite, projectHref } from '../../lib/content.ts';
+import { ui } from '../../lib/ui.ts';
+
+const site = await getSite();
+const projects = await getProjects();
+const objects = await getObjects();
+const tiles = projects
+  .map((project) => ({
+    project,
+    cutout: objects.find(({ object }) => object.data.projectId === project.data.id)?.object,
+  }))
+  // Projects without objects are never listed (check-content fails published ones).
+  .filter((tile) => tile.cutout);
+---
+<Base title={site.menu.found} section="found">
+  <div class="page-shell">
+    <header class="page-head">
+      <h1>{site.menu.found}</h1>
+      <p class="page-sub">{ui.catalogue}</p>
+    </header>
+    {tiles.length === 0 ? <p>{ui.catalogueEmpty}</p> : (
+      <ul class="catalogue">
+        {tiles.map(({ project, cutout }) => (
+          <li>
+            <a class="catalogue-tile" href={projectHref(project.data.slug)}>
+              <span class="catalogue-image">
+                {cutout && (
+                  <Image src={cutout.data.image} alt="" widths={[240, 480]} sizes="(min-width: 720px) 240px, 45vw" format="webp" loading="lazy" />
+                )}
+              </span>
+              <span class="catalogue-title">{project.data.title}</span>
+              {project.data.team.length > 0 && <span class="catalogue-team">{project.data.team.join(', ')}</span>}
+            </a>
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+</Base>

@@ -1,0 +1,14 @@
+---
+import Base from '../layouts/Base.astro';
+import { href, getSite } from '../lib/content.ts';
+import { ui } from '../lib/ui.ts';
+
+const site = await getSite();
+---
+<Base title={ui.notFoundTitle}>
+  <div class="page-shell not-found">
+    <h1>{ui.notFoundTitle}</h1>
+    <p>{ui.notFoundText}</p>
+    <p class="not-found-links"><a href={href('')}>{site.menu.lost}</a> <a href={href('found/')}>{site.menu.found}</a></p>
+  </div>
+</Base>

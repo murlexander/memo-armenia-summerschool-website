@@ -1,5 +1,6 @@
 node_modules/
 dist/
+.astro/
 .env
 .env.*
 !.env.example
@@ -7,3 +8,4 @@ dist/
 coverage/
 test-results/
 playwright-report/
+blob-report/

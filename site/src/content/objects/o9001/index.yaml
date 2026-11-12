@@ -1,0 +1,9 @@
+id: o9001
+projectId: p901
+published: true
+label: "Синий камешек"
+alt: "Вымышленный пример: гладкий синий камешек неправильной формы"
+width: 900
+height: 700
+bounds: { x: 0.153, y: 0.196, width: 0.697, height: 0.646 }
+autoCutout: false

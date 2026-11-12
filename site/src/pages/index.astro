@@ -1,0 +1,44 @@
+---
+import Base from '../layouts/Base.astro';
+import ObjectField from '../components/ObjectField.tsx';
+import { getSite, href, objectAnchor, preview } from '../lib/content.ts';
+import { getFieldObjects } from '../lib/field.ts';
+import { ui } from '../lib/ui.ts';
+
+const site = await getSite();
+const objects = await getFieldObjects();
+const variants = (['1', '2', '3'] as const).map((key) => ({ key, ...site.homeVariants[key] }));
+---
+<Base section="lost" homeVariant={site.defaultHomeVariant}>
+  <section class="home-intro" aria-labelledby="home-title">
+    <h1 id="home-title" class="visually-hidden">{site.title}</h1>
+    {variants.map((variant) => (
+      <div class="home-variant" data-variant={variant.key}>
+        <p class="home-lead">{variant.lead}</p>
+        {variant.key === '3' && variant.keywords && variant.keywords.length > 0 && (
+          <ul class="home-keywords">
+            {variant.keywords.map((keyword) => <li>{keyword}</li>)}
+          </ul>
+        )}
+      </div>
+    ))}
+    <p class="field-instruction" id="field-instruction"><span aria-hidden="true">↓</span> {ui.chooseObject}</p>
+    {preview && (
+      <nav class="variant-switch" aria-label={ui.homeVariant}>
+        <span>{ui.homeVariant}:</span>
+        {variants.map((variant) => (
+          <a href={`${href('')}?home=${variant.key}`} data-variant={variant.key}>{variant.key}</a>
+        ))}
+      </nav>
+    )}
+  </section>
+  <ObjectField client:load objects={objects} label={ui.objects} describedBy="field-instruction" anchorPrefix={objectAnchor('')} />
+</Base>
+
+{preview && (
+  <script is:inline>
+    for (const link of document.querySelectorAll('.variant-switch a')) {
+      if (link.dataset.variant === document.documentElement.dataset.home) link.setAttribute('aria-current', 'true');
+    }
+  </script>
+)}

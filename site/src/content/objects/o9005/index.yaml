@@ -1,0 +1,9 @@
+id: o9005
+projectId: p903
+published: true
+label: "Обрывок ленты"
+alt: "Вымышленный пример: волнистый обрывок полосатой ленты"
+width: 1000
+height: 600
+bounds: { x: 0.09, y: 0.317, width: 0.822, height: 0.41 }
+autoCutout: false
