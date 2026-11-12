@@ -75,19 +75,29 @@ h1, h2, h3 { line-height: 1.05; letter-spacing: -.02em; font-weight: 600; }
 }
 
 /* Header: the three menu words compose the title. */
-.site-header { position: relative; z-index: 20; padding: clamp(1rem, 3vw, 2.25rem) var(--gutter) 0; }
+.site-header { position: relative; z-index: 20; padding: clamp(1rem, 3vw, 2.25rem) var(--gutter) 0; container-type: inline-size; }
+/* Landscape: the whole title is one line across the full width. Portrait: one word per line
+   (LOST & / FOUND / ПОКР / АЙРУМ), sized so the longest word spans the width.
+   Font sizes come from the words' measured widths in Site Sans 700 at -.045em: the full line
+   with its gaps ≈ 13.6em, the longest word ≈ 3.45em. Re-measure if the menu words or the font change. */
 .title-menu {
-  display: flex; flex-wrap: wrap; align-items: baseline;
-  gap: .1em .28em;
-  font-size: clamp(2rem, 7.2vw, 6.4rem);
-  font-weight: 700; line-height: 1.02; letter-spacing: -.045em; text-transform: uppercase;
+  display: flex; flex-wrap: wrap; align-items: baseline; column-gap: .28em;
+  font-size: 28.4cqi;
+  font-weight: 700; line-height: 1.16; letter-spacing: -.045em; text-transform: uppercase;
+}
+.title-break { flex-basis: 100%; height: 0; }
+.title-menu .title-place { flex-direction: column; align-items: flex-start; }
+@media (orientation: landscape) {
+  .title-menu { flex-wrap: nowrap; justify-content: space-between; white-space: nowrap; font-size: 7.2cqi; line-height: 1.02; }
+  .title-break { display: none; }
+  .title-menu .title-place { flex-direction: row; gap: .28em; }
 }
 .title-menu a {
   display: inline-flex; align-items: center;
   min-height: 48px;
   text-decoration: none;
   text-decoration-thickness: .07em;
-  text-underline-offset: .1em;
+  text-underline-offset: .07em;
 }
 .title-menu a:hover { text-decoration-line: underline; text-decoration-color: var(--muted); }
 .title-menu a[aria-current] { text-decoration-line: underline; text-decoration-color: var(--clay); }
@@ -100,10 +110,9 @@ h1, h2, h3 { line-height: 1.05; letter-spacing: -.02em; font-weight: 600; }
 html[data-home="1"] .home-variant[data-variant="1"],
 html[data-home="2"] .home-variant[data-variant="2"],
 html[data-home="3"] .home-variant[data-variant="3"] { display: block; }
-html[data-home="2"] .field-instruction { display: none; }
 .home-lead { max-width: 34ch; margin: 0; font-size: clamp(1.25rem, 2.6vw, 2rem); line-height: 1.3; letter-spacing: -.01em; }
-.home-keywords { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1rem 0 0; padding: 0; list-style: none; }
-.home-keywords li { padding: .3rem .85rem; border: 1px solid var(--muted); border-radius: 999px; font-size: clamp(.95rem, 1.4vw, 1.1rem); }
+.home-keywords { max-width: 70ch; margin: 1rem 0 0; color: var(--muted); font-size: clamp(.95rem, 1.4vw, 1.1rem); line-height: 1.6; }
+.home-keywords .keyword { white-space: nowrap; }
 .field-instruction { display: flex; gap: .6rem; align-items: baseline; margin: 0; color: var(--muted); font-size: .95rem; }
 .variant-switch { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; font-size: .9rem; color: var(--muted); }
 .variant-switch a { display: inline-grid; place-items: center; min-width: 48px; min-height: 48px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink); text-decoration: none; }

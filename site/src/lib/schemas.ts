@@ -91,7 +91,12 @@ export const pageSchema = z.object({
   published: z.boolean().default(false),
 });
 
-const homeVariant = z.object({ lead: nonEmpty, keywords: z.array(nonEmpty).optional() });
+const homeVariant = z.object({
+  lead: nonEmpty,
+  keywords: z.array(nonEmpty).optional(),
+  /** false when the lead itself invites the visitor to pick an object */
+  instruction: z.boolean().default(true),
+});
 
 export const siteSchema = z.object({
   title: nonEmpty,

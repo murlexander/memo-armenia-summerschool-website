@@ -15,11 +15,13 @@ What the Person in History team asked for, as of 2026-11-10. The team's working 
 
 ## Home text variants
 
-1. Title plus a short description.
-2. Title plus a prompt to click the objects (the prototype's current approach).
-3. Title plus a list of keywords. The keywords may become tags: a third way into the projects, besides objects and the catalogue.
+Numbered as in the team's doc; variant 3 is not in the doc.
 
-The curator prefers variant 3 and asked to see more than one variant before choosing. Build them switchable for review.
+1. Title plus a short description.
+2. Title plus a list of keywords. The keywords may become tags: a third way into the projects, besides objects and the catalogue. Until that is decided they are plain text, not clickable chips.
+3. Title plus a prompt to click the objects (the prototype's approach).
+
+The curator prefers variant 2 and asked to see more than one variant before choosing. Build them switchable for review.
 
 ## Working agreement
 

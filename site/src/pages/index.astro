@@ -8,17 +8,25 @@ import { ui } from '../lib/ui.ts';
 const site = await getSite();
 const objects = await getFieldObjects();
 const variants = (['1', '2', '3'] as const).map((key) => ({ key, ...site.homeVariants[key] }));
+// A variant whose lead already invites the visitor to pick an object hides the shared instruction.
+const hideInstruction = variants
+  .filter((variant) => !variant.instruction)
+  .map((variant) => `html[data-home="${variant.key}"] .field-instruction{display:none}`)
+  .join('');
 ---
 <Base section="lost" homeVariant={site.defaultHomeVariant}>
+  {hideInstruction && <style is:inline set:html={hideInstruction} />}
   <section class="home-intro" aria-labelledby="home-title">
     <h1 id="home-title" class="visually-hidden">{site.title}</h1>
     {variants.map((variant) => (
       <div class="home-variant" data-variant={variant.key}>
         <p class="home-lead">{variant.lead}</p>
-        {variant.key === '3' && variant.keywords && variant.keywords.length > 0 && (
-          <ul class="home-keywords">
-            {variant.keywords.map((keyword) => <li>{keyword}</li>)}
-          </ul>
+        {variant.keywords && variant.keywords.length > 0 && (
+          <p class="home-keywords">
+            {variant.keywords.map((keyword, index) => (
+              <>{index > 0 && <span aria-hidden="true"> · </span>}<span class="keyword">{keyword}</span>{index < variant.keywords!.length - 1 && <span class="visually-hidden">,</span>}</>
+            ))}
+          </p>
         )}
       </div>
     ))}

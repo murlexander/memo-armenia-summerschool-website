@@ -96,8 +96,10 @@ test('home text variants switch with ?home=', async ({ page }) => {
     await expect(page.locator(`.home-variant[data-variant="${variant}"]`)).toBeVisible();
     await expect(page.locator('.home-variant:visible')).toHaveCount(1);
   }
+  await page.goto(`${base}?home=2`);
+  await expect(page.locator('.home-keywords .keyword').first()).toBeVisible();
   await page.goto(`${base}?home=3`);
-  await expect(page.locator('.home-keywords li').first()).toBeVisible();
+  await expect(page.locator('.field-instruction')).toBeHidden();
 });
 
 test('YouTube loads nothing before the visitor presses play', async ({ page }) => {
