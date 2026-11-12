@@ -18,7 +18,8 @@ const tiles = projects
 <Base title={site.menu.found} section="found">
   <div class="page-shell">
     <header class="page-head">
-      <h1>{site.menu.found}</h1>
+      {/* The underlined header word already names the section; the heading stays for screen readers. */}
+      <h1 class="visually-hidden">{site.menu.found}</h1>
       <p class="page-sub">{ui.catalogue}</p>
     </header>
     {tiles.length === 0 ? <p>{ui.catalogueEmpty}</p> : (

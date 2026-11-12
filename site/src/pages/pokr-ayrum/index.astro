@@ -14,7 +14,8 @@ const Content = rendered?.Content;
 <Base title={page?.data.title ?? site.menu.place} description={page?.data.description} section="place">
   <article class="page-shell longread">
     <header class="page-head">
-      <h1>{page?.data.title ?? site.menu.place}</h1>
+      {/* The underlined header word already names the section; the heading stays for screen readers. */}
+      <h1 class="visually-hidden">{page?.data.title ?? site.menu.place}</h1>
       {page?.data.description && <p class="page-sub">{page.data.description}</p>}
     </header>
     <div class="prose longread-body">
