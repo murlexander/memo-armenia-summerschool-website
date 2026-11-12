@@ -14,7 +14,7 @@ Start with [README.md](README.md). Read [docs/brief.md](docs/brief.md) before pr
 
 - The team's Google Drive folder is linked at `../memo-armenia-summerschool-private/drive` (Google Drive for desktop, streaming). Alex has edit rights there, so treat it as read-only: never create, move, rename or delete anything in it. If the link is broken, Drive is not signed in; say so instead of searching elsewhere.
 - Never scan it recursively. Files download when read and the folder holds about 30 GB. Don't run `du`, `grep -R`, `cp -R`, `rsync` or image tools over whole folders. List one folder at a time, or use the Drive connector.
-- Google Docs and Sheets appear there only as `.gdoc`/`.gsheet` pointer files. Read their content through Alex's Executor Google Drive connector, finding files by name under the folder "Lost n' Found in Pokr Ayrum". The project index is the sheet «Таблица текстов и фото».
+- Google Docs and Sheets appear there only as `.gdoc`/`.gsheet` pointer files. Read their content through Alex's Executor Google Drive connector, finding files by name under the folder "Lost n' Found in Pokr Ayrum". The sheet «Таблица текстов и фото» is the source of truth: tab «прокты» lists projects (ID pNNN, authors by studio, title, status with open questions), tab «предметы» lists objects (ID, description, photos, owning project, conflicts).
 - Status «готово» in the sheet means the text is editorially ready, not approved for publication. Publication approval is recorded only in the private `approvals.yaml`.
 
 ## Code

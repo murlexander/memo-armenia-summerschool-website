@@ -8,10 +8,10 @@ How real material gets from the team's Google Drive onto the public site. Drive 
 
 | Drive path | Contents |
 | --- | --- |
-| «Таблица текстов и фото» (sheet) | Project index, rows grouped by studio: project label, status, link to the text doc, photo folder name, object photo file name |
+| «Таблица текстов и фото» (sheet) | The source of truth. Tab «прокты»: projects grouped by studio with ID, authors, title, status and open questions, links to text, photos and objects. Tab «предметы»: objects with ID, description, photo numbers, owning project, conflicts and links to the photos |
 | «Главная, шапка, подвал и меню» (doc) | Header, home text variants, menu and footer copy |
 | «Формат текстов второй страницы» (doc) | Project page template |
-| `Работа на посте/все фото/предметы/` | Object photos `obect_001_01_X1_NNNN.jpg`, not yet cut out |
+| `Работа на посте/все фото/предметы/` | Object photos named by object ID (`o043.jpg`, `o009_1.jpg`…), not yet cut out |
 | `Работа на посте/Студия …/проекты/<project>/` | Per-project photos and text docs (some texts are `.docx`) |
 | `Работа на посте/все фото/лагерь и проекты/` | Selected camp and project photos |
 | `1 смена фотографии/`, `2 смена фотографии/` | Raw per-participant photos and video from both shifts, about 25 GB. Longread source only; never bulk-copy |

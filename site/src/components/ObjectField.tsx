@@ -10,7 +10,7 @@ type Props = {
   objects: FieldObject[];
   label: string;
   describedBy?: string;
-  /** Prefix for each link's id, so project pages can link back to an object (#object-o0016). */
+  /** Prefix for each link's id, so project pages can link back to an object (#object-o009). */
   anchorPrefix: string;
   /** The word for «project» in the page's language, for the screen-reader label. */
   projectWord: string;

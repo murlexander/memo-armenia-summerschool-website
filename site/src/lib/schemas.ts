@@ -110,7 +110,7 @@ export function objectSchema<I extends z.ZodType>(image: () => I) {
         published: z.boolean().default(false),
         label: nonEmpty,
         alt: nonEmpty,
-        /** The team's note on where the object comes from and what it meant (Предметы.xlsx «Описание»). */
+        /** The team's note on where the object comes from and what it meant (index sheet, tab «предметы», «описание»). */
         story: optionalText,
         width: z.number().int().positive(),
         height: z.number().int().positive(),
