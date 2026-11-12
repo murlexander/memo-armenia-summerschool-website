@@ -15,7 +15,7 @@
     "typecheck": "astro check",
     "test:e2e": "playwright test",
     "validate": "npm run check-content && npm test && npm run typecheck && npm run build",
-    "alpha": "SITE_PREVIEW=1 npm run check-content && SITE_PREVIEW=1 astro build",
+    "alpha": "SITE_PREVIEW=1 npm run check-content && rm -f \"$SITE_OUT_DIR.cache/data-store.json\" && SITE_PREVIEW=1 astro build",
     "make-fixture": "node scripts/make-fixture.ts"
   },
   "dependencies": {

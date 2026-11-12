@@ -15,7 +15,7 @@ defaultHomeVariant: "2"
 footer:
   text: "Совместный проект летнего лагеря «Человек в истории» и Green Camp"
   partners:
-    - { name: "Человек в истории", url: "https://urokiistorii.org/category/istoricheskij-konkurs-ru/" }
+    - { name: "Человек в истории", url: "https://www.personinhistory.org/" }
     - { name: "Zukunft MEMORIAL", url: "https://zukunft-memorial.org/" }
     - "Green Camp"
   instagram: "personinhistory"

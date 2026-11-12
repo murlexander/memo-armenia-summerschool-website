@@ -21,16 +21,35 @@ export async function getProjects(): Promise<Project[]> {
   return projects.sort((a, b) => a.data.id.localeCompare(b.data.id));
 }
 
-/** Visible objects whose project is visible too, in ID order. */
-export async function getObjects(): Promise<Array<{ object: MuseumObject; project: Project }>> {
+export type ObjectEntry = {
+  object: MuseumObject;
+  /** Undefined only in preview, for an object no project has taken yet. */
+  project?: Project;
+  /** Preview only: other projects that list the same object. */
+  claimedBy: Project[];
+};
+
+/** Visible objects whose project is visible too (or, in preview, that have none yet), in ID order. */
+export async function getObjects(): Promise<ObjectEntry[]> {
   const projects = new Map((await getProjects()).map((project) => [project.data.id, project]));
   const objects = await getCollection('objects', visible);
   return objects
     .flatMap((object) => {
-      const project = projects.get(object.data.projectId);
-      return project ? [{ object, project }] : [];
+      const { projectId, alsoClaimedBy } = object.data;
+      const project = projectId ? projects.get(projectId) : undefined;
+      if (projectId ? !project : !preview) return [];
+      const claimedBy = alsoClaimedBy.flatMap((id) => projects.get(id) ?? []);
+      return [{ object, project, claimedBy }];
     })
     .sort((a, b) => a.object.data.id.localeCompare(b.object.data.id));
+}
+
+/** A project's objects: the ones it owns, then (preview only) the ones it shares with another project. */
+export function objectsOfProject(entries: ObjectEntry[], projectId: string) {
+  return {
+    owned: entries.filter(({ object }) => object.data.projectId === projectId),
+    claimed: entries.filter(({ claimedBy }) => claimedBy.some((project) => project.data.id === projectId)),
+  };
 }
 
 export async function getLongread() {

@@ -1,6 +1,7 @@
 // Content schemas, shared by content.config.ts (Astro) and scripts/check-content.ts (Node).
 // The image schema is injected: Astro's image() in the site, a plain path string in the checks.
 import { z } from 'astro/zod';
+import { objectIssueCodes, projectIssueCodes } from './issues.ts';
 
 const nonEmpty = z.string().trim().min(1);
 const asciiId = (prefix: string) => z.string().regex(new RegExp(`^${prefix}[0-9]+$`), `must look like ${prefix}001`);
@@ -50,9 +51,14 @@ export function projectSchema<I extends z.ZodType>(image: () => I) {
       history: z.string().default(''),
       fromAuthor: z.string().default(''),
       media: z.array(z.discriminatedUnion('type', [imageMedia, youtubeMedia])).default([]),
+      /** Open questions the team preview marks; see issues.ts. */
+      issues: z.array(z.enum(projectIssueCodes)).default([]),
     })
     .superRefine((project, context) => {
       if (!project.published) return;
+      if (project.issues.length > 0) {
+        context.addIssue({ code: 'custom', path: ['issues'], message: `published project ${project.id} still has open issues` });
+      }
       for (const field of missingProjectFields(project)) {
         context.addIssue({ code: 'custom', path: [field], message: `published project ${project.id} needs ${field}` });
       }
@@ -68,7 +74,12 @@ export function objectSchema<I extends z.ZodType>(image: () => I) {
     z
       .object({
         id: asciiId('o'),
-        projectId: asciiId('p'),
+        /** The one project that owns the object; unpublished objects may have none yet. */
+        projectId: asciiId('p').optional(),
+        /** Unpublished only: other projects that list the same object (a conflict to resolve). */
+        alsoClaimedBy: z.array(asciiId('p')).default([]),
+        /** Open questions the team preview marks; see issues.ts. */
+        issues: z.array(z.enum(objectIssueCodes)).default([]),
         published: z.boolean().default(false),
         label: nonEmpty,
         alt: nonEmpty,
@@ -81,6 +92,10 @@ export function objectSchema<I extends z.ZodType>(image: () => I) {
       .refine((object) => object.bounds.x + object.bounds.width <= 1.0001 && object.bounds.y + object.bounds.height <= 1.0001, {
         message: 'bounds must stay within the image (x + width ≤ 1, y + height ≤ 1)',
         path: ['bounds'],
+      })
+      .refine((object) => !object.published || (object.projectId && object.alsoClaimedBy.length === 0 && object.issues.length === 0), {
+        message: 'a published object needs a project, no other claimants and no open issues',
+        path: ['published'],
       }),
   );
 }

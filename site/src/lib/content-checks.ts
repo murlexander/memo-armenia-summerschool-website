@@ -44,6 +44,8 @@ export async function checkContentDir(root: string, options: { preview: boolean 
   const rel = (file: string) => path.relative(root, file);
   // Problems with unpublished content block a preview build but only warn in a public build.
   const report = (published: boolean, message: string) => (published || options.preview ? errors : warnings).push(message);
+  // Gaps the preview marks visibly (placeholders, conflict markers) only block published content.
+  const gap = (published: boolean, message: string) => (published ? errors : warnings).push(message);
 
   const requireFile = (entryFile: string, src: string, what: string) => {
     const target = path.resolve(path.dirname(entryFile), src);
@@ -86,7 +88,7 @@ export async function checkContentDir(root: string, options: { preview: boolean 
     if (dir !== project.id) errors.push(`${rel(file)}: folder name must equal id ${project.id}`);
     if (body.trim()) warnings.push(`${rel(file)}: body text is ignored; use the history and fromAuthor fields`);
     if (!project.published && options.preview) {
-      for (const field of missingProjectFields(project)) errors.push(`${rel(file)}: missing ${field}`);
+      for (const field of missingProjectFields(project)) warnings.push(`${rel(file)}: missing ${field} (shown as a placeholder)`);
     }
     for (const media of project.media) {
       if (media.type === 'image') requireFile(file, media.src, 'image');
@@ -141,6 +143,14 @@ export async function checkContentDir(root: string, options: { preview: boolean 
   const projectsById = new Map<string, ProjectRecord[]>();
   for (const project of projects) projectsById.set(project.id, [...(projectsById.get(project.id) ?? []), project]);
   for (const object of objects) {
+    for (const id of object.alsoClaimedBy) {
+      if ((projectsById.get(id) ?? []).length !== 1 || id === object.projectId) errors.push(`${rel(object.file)}: alsoClaimedBy names unknown or own project ${id}`);
+    }
+    if (object.alsoClaimedBy.length > 0) warnings.push(`${rel(object.file)}: also claimed by ${object.alsoClaimedBy.join(', ')}`);
+    if (!object.projectId) {
+      gap(object.published, `${rel(object.file)}: object has no project`);
+      continue;
+    }
     const owners = projectsById.get(object.projectId) ?? [];
     if (owners.length !== 1) {
       errors.push(`${rel(object.file)}: needs exactly one project, found ${owners.length} with id ${object.projectId}`);
@@ -152,7 +162,8 @@ export async function checkContentDir(root: string, options: { preview: boolean 
   }
   for (const project of projects) {
     const own = objects.filter((object) => object.projectId === project.id);
-    if (own.length === 0) report(project.published, `${rel(project.file)}: project has no objects`);
+    const claimed = objects.filter((object) => object.alsoClaimedBy.includes(project.id));
+    if (own.length + claimed.length === 0) gap(project.published, `${rel(project.file)}: project has no objects`);
     if (project.published) {
       for (const object of own.filter((item) => !item.published)) {
         errors.push(`${rel(project.file)}: published project references unpublished object ${object.id}`);

@@ -24,4 +24,12 @@ export const ui = {
   notFoundText: 'Возможно, ссылка устарела. Начните с поля предметов или со списка проектов.',
   instagram: 'Instagram',
   partners: 'Партнёры',
+  // Team preview placeholders
+  noObject: 'Предмет не выбран',
+  noText: 'Текста пока нет',
+  noPhotos: 'Фото пока нет',
+  notSpecified: 'не указано',
+  openIssues: 'Нужно решить',
+  alsoClaimedBy: 'Указан и у проекта',
+  ownedBy: 'Принадлежит проекту',
 } as const;

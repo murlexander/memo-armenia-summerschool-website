@@ -52,7 +52,7 @@ SITE_OUT_DIR=/absolute/path/outside/this/repo/alpha-site \
 npm run alpha
 ```
 
-`npm run alpha` checks the content (unpublished problems count as errors) and builds with `SITE_PREVIEW=1`; the Astro cache goes to `$SITE_OUT_DIR.cache`. View it with `SITE_PREVIEW=1 SITE_OUT_DIR=… npx astro preview`. Never commit that output. The live alpha is deployed only by the private repo's `tools/deploy-alpha.mjs`, which builds a name-redacted copy and pushes it to `gh-pages`. `npm run dev` with `SITE_PREVIEW=1` works too, but keeps its content cache in the git-ignored `site/.astro/`.
+`npm run alpha` checks the content and builds with `SITE_PREVIEW=1`: structural problems fail, while gaps the alpha marks visibly (missing text, photos, objects, open `issues`) only warn. The image cache goes to `$SITE_OUT_DIR.cache`; the content store is rebuilt each time so schema changes apply. View it with `SITE_PREVIEW=1 SITE_OUT_DIR=… npx astro preview`. Never commit that output. The live alpha is deployed only by the private repo's `tools/deploy-alpha.mjs`, which builds a name-redacted copy and pushes it to `gh-pages`. `npm run dev` with `SITE_PREVIEW=1` works too, but keeps its content cache in the git-ignored `site/.astro/`.
 
 ## Run the prototype
 

@@ -68,7 +68,7 @@ test('a published project needs its required fields and image alt text', async (
   hasError(result.errors, /media\.1\.alt/);
 });
 
-test('gaps in unpublished content warn in public mode and fail in preview mode', async () => {
+test('gaps in unpublished content only warn, in public and preview mode alike', async () => {
   const unpublish = (dir: string) => {
     edit(dir, 'projects/p903/ru.md', (text) => text.replace('published: true', 'published: false').replace(/team: \[.*\]/, 'team: []'));
     for (const id of ['o9004', 'o9005']) edit(dir, `objects/${id}/index.yaml`, (text) => text.replace('published: true', 'published: false'));
@@ -79,8 +79,18 @@ test('gaps in unpublished content warn in public mode and fail in preview mode',
   assert.deepEqual(publicResult.errors, []);
   assert.ok(publicResult.warnings.some((warning) => /p903\/ru\.md: project has no objects/.test(warning)));
   const previewResult = await check(unpublish, true);
-  hasError(previewResult.errors, /p903\/ru\.md: missing team/);
-  hasError(previewResult.errors, /p903\/ru\.md: project has no objects/);
+  assert.deepEqual(previewResult.errors, []);
+  assert.ok(previewResult.warnings.some((warning) => /p903\/ru\.md: missing team/.test(warning)));
+  assert.ok(previewResult.warnings.some((warning) => /p903\/ru\.md: project has no objects/.test(warning)));
+});
+
+test('unpublished objects may lack a project or be claimed twice; published ones may not', async () => {
+  const orphan = await check((dir) => edit(dir, 'objects/o9004/index.yaml', (text) => text.replace('published: true', 'published: false').replace(/projectId: p\d+\n/, '')), true);
+  assert.ok(orphan.warnings.some((warning) => /o9004\/index\.yaml: object has no project/.test(warning)));
+  const published = await check((dir) => edit(dir, 'objects/o9001/index.yaml', (text) => `${text}alsoClaimedBy: [p902]\n`));
+  hasError(published.errors, /o9001\/index\.yaml: published: a published object needs a project/);
+  const unknown = await check((dir) => edit(dir, 'objects/o9001/index.yaml', (text) => `${text.replace('published: true', 'published: false')}alsoClaimedBy: [p999]\n`));
+  hasError(unknown.errors, /alsoClaimedBy names unknown or own project p999/);
 });
 
 test('cut-out metadata must match the image', async () => {

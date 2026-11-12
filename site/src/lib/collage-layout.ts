@@ -11,14 +11,16 @@ export type VisibleBounds = {
 /** Serializable object descriptor, built at build time and passed to the island. */
 export type FieldObject = {
   id: string;
-  /** Base-aware project URL. */
-  href: string;
+  /** Base-aware project URL; absent for an object no project has taken yet (preview only). */
+  href?: string;
   /** Short object name, shown as the touch label. */
   label: string;
-  projectTitle: string;
+  projectTitle?: string;
   alt: string;
-  /** Optimized web image (webp). */
-  image: { src: string; width: number; height: number };
+  /** Optimized web image (webp), with a smaller candidate in srcset. */
+  image: { src: string; srcset: string; width: number; height: number };
+  /** Preview only: labels of open questions, marked on the field. */
+  issues?: string[];
   /** Pixel size of the original cut-out. */
   intrinsicSize: { width: number; height: number };
   /** Normalized bounding box of the visible (non-transparent) pixels. */

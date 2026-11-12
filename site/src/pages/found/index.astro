@@ -1,19 +1,24 @@
 ---
 import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
-import { getObjects, getProjects, getSite, projectHref } from '../../lib/content.ts';
+import { getObjects, getProjects, getSite, objectsOfProject, preview, projectHref } from '../../lib/content.ts';
+import { issueLabels, projectIssues } from '../../lib/issues.ts';
 import { ui } from '../../lib/ui.ts';
 
 const site = await getSite();
 const projects = await getProjects();
 const objects = await getObjects();
 const tiles = projects
-  .map((project) => ({
-    project,
-    cutout: objects.find(({ object }) => object.data.projectId === project.data.id)?.object,
-  }))
-  // Projects without objects are never listed (check-content fails published ones).
-  .filter((tile) => tile.cutout);
+  .map((project) => {
+    const { owned, claimed } = objectsOfProject(objects, project.data.id);
+    return {
+      project,
+      cutout: (owned[0] ?? claimed[0])?.object,
+      issues: preview ? projectIssues(project.data, { owned: owned.length, claimed: claimed.length }).map((code) => issueLabels[code]) : [],
+    };
+  })
+  // Outside the preview, projects without objects are never listed (check-content fails published ones).
+  .filter((tile) => tile.cutout || preview);
 ---
 <Base title={site.menu.found} section="found">
   <div class="page-shell">
@@ -24,16 +29,19 @@ const tiles = projects
     </header>
     {tiles.length === 0 ? <p>{ui.catalogueEmpty}</p> : (
       <ul class="catalogue">
-        {tiles.map(({ project, cutout }) => (
+        {tiles.map(({ project, cutout, issues }) => (
           <li>
             <a class="catalogue-tile" href={projectHref(project.data.slug)}>
-              <span class="catalogue-image">
-                {cutout && (
+              {cutout ? (
+                <span class="catalogue-image">
                   <Image src={cutout.data.image} alt="" widths={[240, 480]} sizes="(min-width: 720px) 240px, 45vw" format="webp" loading="lazy" />
-                )}
-              </span>
+                </span>
+              ) : (
+                <span class="catalogue-image placeholder-box">{ui.noObject}</span>
+              )}
               <span class="catalogue-title">{project.data.title}</span>
               {project.data.team.length > 0 && <span class="catalogue-team">{project.data.team.join(', ')}</span>}
+              {issues.length > 0 && <ul class="issue-list">{issues.map((issue) => <li>{issue}</li>)}</ul>}
             </a>
           </li>
         ))}
