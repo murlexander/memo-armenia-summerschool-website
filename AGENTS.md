@@ -6,6 +6,7 @@ Start with [README.md](README.md). Read [docs/brief.md](docs/brief.md) before pr
 
 - Everything committed here is public. Commit only content approved for publication under the content pipeline.
 - Never commit Google Drive, Docs, Sheets or Maps links or file IDs: the team's shared folder is editable by anyone holding a link. Also never commit consent or approval records, contact details, unpublished or unapproved material, original media, or image metadata (EXIF, GPS).
+- Exception: the `gh-pages` branch serves the team alpha publicly with `noindex`, every person's name replaced by «[имя]». Deploy it only with `../memo-armenia-summerschool-private/tools/deploy-alpha.mjs`, which redacts, checks and pushes; never push gh-pages any other way. After pushing `site/` changes or changing the alpha content, redeploy so the live alpha stays current. Before deploying new content, add every new person's name to that script's list.
 - Visitor-facing names are "Lost & Found Покр Айрум" and "Person in History" (Человек в истории). "memo" is Alex's private shorthand: never use it in visitor-facing copy or metadata.
 - Many participants are school-age. Show names exactly as approved, and nothing about a participant beyond what was approved.
 

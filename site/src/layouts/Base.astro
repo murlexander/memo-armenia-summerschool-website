@@ -45,7 +45,7 @@ const homeScript = homeVariant
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{pageTitle}</title>
     <meta name="description" content={metaDescription} />
-    {preview && <meta name="robots" content="noindex,nofollow" />}
+    {preview && <meta name="robots" content="noindex,nofollow,noarchive,noimageindex" />}
     <link rel="icon" type="image/png" href={href('favicon.png')} />
     <link rel="preload" href={cyrillic} as="font" type="font/woff2" crossorigin />
     <style is:inline set:html={fontFaces}></style>

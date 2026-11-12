@@ -7,7 +7,7 @@ Current technical decisions for the real-content site. The prototype-phase plan 
 - **Astro, static output, TypeScript.** The site is a few page types plus ~40 project pages and a longread, so it needs real shareable URLs, content collections and a build-time image pipeline, not a client-side app.
 - **React only for the object field.** The collage is one island. It reuses the seeded solver in `prototype/lib/collage-layout.ts` ([placement contract](collage-algorithm.md)) but receives serializable object descriptors with resolved URLs and alpha bounds. Links are built inside the island; components and callbacks can't cross Astro's hydration boundary.
 - **MDX** for the longread, so it can place photos and YouTube embeds inline.
-- **One build path, one deploy.** GitHub Actions builds `site/` and deploys it to GitHub Pages, with Astro's `base` set to `/memo-armenia-summerschool-website/` until the project has its own domain. At cutover, delete `prototype/` and stop publishing the `gh-pages` branch.
+- **One build path, one deploy.** GitHub Actions builds `site/` and deploys it to GitHub Pages, with Astro's `base` set to `/memo-armenia-summerschool-website/` until the project has its own domain. Until the cutover, the `gh-pages` branch serves the team alpha with every name replaced by «[имя]», deployed from the private repo's `tools/deploy-alpha.mjs`; at cutover, delete `prototype/` and the `gh-pages` branch.
 
 ## Migration
 
@@ -52,7 +52,7 @@ pages/pokr-ayrum/ru.mdx           longread; images alongside
 - `published` is false by default and is set only by promotion in the [content pipeline](content-pipeline.md). Approval evidence stays private; public checks can only enforce structure.
 - Normal builds drop unpublished projects, objects and pages at the content loader, so neither their data nor their images reach the output.
 - `site/scripts/check-content.ts` runs in `validate` and CI. It fails on an object without exactly one project, a project without objects, missing alt text or required fields on published content, a published project referencing unpublished objects, cut-out size or transparency mismatches, and duplicate IDs or slugs. Problems in unpublished content are warnings, except in preview.
-- **Team preview.** `SITE_PREVIEW=1` includes unpublished content, adds `noindex,nofollow` and a fixed «Альфа-версия для команды · не для распространения» banner to every page, and shows a home-variant switcher. The build refuses to run unless `SITE_OUT_DIR` is an absolute path outside this repository.
+- **Team preview.** `SITE_PREVIEW=1` includes unpublished content, adds `noindex,nofollow,noarchive,noimageindex` and a fixed «Альфа-версия для команды · не для распространения» banner to every page, and shows a home-variant switcher. The build refuses to run unless `SITE_OUT_DIR` is an absolute path outside this repository.
 
 ## Quality bar
 
