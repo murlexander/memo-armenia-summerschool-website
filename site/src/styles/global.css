@@ -172,8 +172,8 @@ html.js .object-field[data-ready="false"] { opacity: 0; animation: field-reveal 
 .object-label b { font-size: .9rem; font-weight: 650; }
 .object-arrow { flex: none; font-size: 1rem; line-height: 1; }
 /* Fine pointers: no resting label, the whole card is the figure; motion on hover/focus. */
-.object-field[data-mode="fine"] .object-figure { position: absolute; inset: 0; }
-.object-field[data-mode="fine"] .object-label {
+.object-field:is([data-mode="fine"], [data-mode="compact"]) .object-figure { position: absolute; inset: 0; }
+.object-field:is([data-mode="fine"], [data-mode="compact"]) .object-label {
   position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0;
   overflow: hidden; clip-path: inset(50%); white-space: nowrap;
 }

@@ -55,7 +55,7 @@ test('preserves seeded object order while density increases with screen width', 
 });
 
 test('matches the reference density audit points', () => {
-  const expected: Array<[number, number]> = [[320, 1], [390, 1], [768, 3], [1024, 4], [1440, 6], [1920, 8]];
+  const expected: Array<[number, number]> = [[320, 1], [360, 2], [390, 2], [768, 3], [1024, 4], [1440, 6], [1920, 8]];
   for (const [width, columns] of expected) {
     assert.equal(layoutMetrics(width).densityColumns, columns, `density at ${width}px`);
   }

@@ -28,7 +28,7 @@ Every object is one semantic link. Its protected link rectangle is always at lea
 1. A fresh seed is created when the collection mounts. Values are derived from `hash(seed, object ID, property)` so resizing or adding one record cannot scramble unrelated values.
 2. The seed controls visual order, width and height variation, rotation, two-dimensional position, layer, mirroring, and peripheral drift.
 3. The usable width is the measured collection width after fluid safe gutters.
-4. Density is content-based. The solver estimates how many readable footprints the width can support at roughly `184–198` CSS pixels, up to eight. This estimate sizes the plane; it is not a set of columns or lanes.
+4. Density is content-based. The solver estimates how many readable footprints the width can support at roughly `184–198` CSS pixels, up to eight, and never fewer than two once about `300` CSS pixels are usable (phones). This estimate sizes the plane; it is not a set of columns or lanes.
 5. On multi-footprint layouts, every object samples hundreds of continuous `(x, y)` candidates across the whole plane. Candidates are rejected when protected link rectangles overlap, the same placeholder silhouette is too close to itself, four centres would form a narrow horizontal band, or the leading edge would become a flat first row.
 6. Remaining candidates are scored as a two-dimensional field. Soft Gaussian penalties resist shared top, centre, and left alignments; local crowding penalties prevent clusters; and a mild isolation penalty prevents empty islands. There is no gravity pass, nearest-neighbour chain, row cycle, or anchor cluster.
 7. Fine-pointer cards use compact protected rectangles so the much larger cut-outs can interlock and overlap peripherally without creating overlapping links. Seeded scale, rotation, drift, mirroring, and layer variation prevent identical placeholder assets from reading as a repeated stamp.
@@ -57,11 +57,11 @@ If a future real asset cannot remain legible at the current footprint estimate, 
 
 | Width condition | Density | Visible overlap | Expected result |
 | --- | --- | --- | --- |
-| Only one readable footprint fits | 1 footprint | None | Compact single stream; roughly three object cards per `844px` of collection height; first-tap links and resting labels |
+| Under ~330px wide | 1 footprint | None | Compact single stream; roughly three object cards per `844px` of collection height; first-tap links and resting labels |
 | Several readable footprints fit | 2–5 footprint estimate | Negligible to peripheral | Continuous two-dimensional placement; no repeated row, lane, or pair rhythm; object-only presentation on fine pointers |
 | Broad plane | 6–8 footprint estimate | Peripheral, targeting the approved 15–20% collage feel | Many enlarged, unrelated objects in view at once; no object becomes the centre of a cluster |
 
-Reference audit points: `320 → 1`, `390 → 1`, `768 → 3`, `1024 → 4`, `1440 → 6`, and `1920 → 8` estimated footprints. These are outcomes of the content-fit calculation, not hard-coded device breakpoints.
+Reference audit points: `320 → 1`, `360 → 2`, `390 → 2`, `768 → 3`, `1024 → 4`, `1440 → 6`, and `1920 → 8` estimated footprints. These are outcomes of the content-fit calculation, not hard-coded device breakpoints. Open: on phones the two-footprint plane is a stopgap; the placement should move towards the same loose canvas composition as on wide screens.
 
 ## Verification gates
 

@@ -58,7 +58,8 @@ export default function ObjectField({ objects, label, describedBy, anchorPrefix,
   const [touch, setTouch] = useState(false);
   const layout = useMemo(() => createCollageLayout(objects, width, seed), [objects, width, seed]);
   const objectById = useMemo(() => new Map(objects.map((object) => [object.id, object])), [objects]);
-  const mode = layout.densityColumns === 1 ? 'single' : touch ? 'touch' : 'fine';
+  // Phones with two footprints: no resting labels and no hover card (iOS would need a second tap), just the objects.
+  const mode = layout.densityColumns === 1 ? 'single' : touch ? (layout.densityColumns <= 2 ? 'compact' : 'touch') : 'fine';
 
   useEffect(() => {
     const element = fieldRef.current;

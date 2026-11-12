@@ -103,7 +103,9 @@ export function layoutMetrics(containerWidth: number) {
   const usableWidth = safeWidth - gutter * 2;
   const protectedGap = clamp(4, safeWidth * .005, 9);
   const targetCellWidth = clamp(184, safeWidth * .15, 198);
-  const densityColumns = clamp(1, Math.floor((usableWidth + protectedGap) / (targetCellWidth + protectedGap)), 8);
+  // Phones get two footprints once they have ~300px to spare (Alex, 2026-11-12); only very narrow screens stay a single stream.
+  const minimumColumns = usableWidth >= 300 ? 2 : 1;
+  const densityColumns = clamp(minimumColumns, Math.floor((usableWidth + protectedGap) / (targetCellWidth + protectedGap)), 8);
   const nominalWidth = (usableWidth - protectedGap * (densityColumns - 1)) / densityColumns;
   return { safeWidth, gutter, usableWidth, protectedGap, densityColumns, nominalWidth };
 }
@@ -251,7 +253,7 @@ export function createCollageLayout(objects: CollageItem[], containerWidth: numb
  * How a card shows its cut-out: one wide stream with a resting label ("single"), several
  * footprints with a resting label on touch ("touch"), or label-free with overflow ("fine").
  */
-export type CardMode = 'single' | 'touch' | 'fine';
+export type CardMode = 'single' | 'touch' | 'fine' | 'compact';
 
 /** Height reserved for the resting one-line label. */
 export const LABEL_HEIGHT = 36;
@@ -260,7 +262,7 @@ export const LABEL_HEIGHT = 36;
 export function visualBox(card: { width: number; height: number }, mode: CardMode) {
   if (mode === 'single') return { width: card.width * .72, height: (card.height - LABEL_HEIGHT) * .8 };
   if (mode === 'touch') return { width: Math.min(card.width * 1.2, 240), height: card.height - LABEL_HEIGHT };
-  // Fine pointers: compact targets, larger cut-outs that may overlap peripherally.
+  // Fine pointers and touch phones (compact): small targets, larger cut-outs that may overlap peripherally.
   return { width: Math.min(card.width * 1.55, 272), height: card.height * 1.18 };
 }
 
