@@ -108,7 +108,7 @@ export const siteSchema = z.object({
     text: nonEmpty,
     // A partner is a name, or a name with a link to its site.
     partners: z
-      .array(z.union([nonEmpty.transform((name) => ({ name })), z.object({ name: nonEmpty, url: z.string().url().startsWith('https://') })]))
+      .array(z.union([nonEmpty.transform((name): { name: string; url?: string } => ({ name })), z.object({ name: nonEmpty, url: z.url({ protocol: /^https$/ }) })]))
       .default([]),
     instagram: z.string().regex(/^[A-Za-z0-9._]+$/).optional(),
   }),
