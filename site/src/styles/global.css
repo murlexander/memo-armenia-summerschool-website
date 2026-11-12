@@ -46,13 +46,6 @@ h1, h2, h3 { line-height: 1.05; letter-spacing: -.02em; font-weight: 600; }
 .skip-link { position: fixed; left: 1rem; top: 1rem; z-index: 10001; padding: .8rem 1rem; background: var(--ink); color: var(--paper); transform: translateY(calc(-100% - 2rem)); }
 .skip-link:focus { transform: none; }
 
-.preview-banner {
-  position: sticky; top: 0; z-index: 10000;
-  margin: 0; padding: .5rem var(--gutter);
-  background: var(--clay); color: #fff;
-  font-size: .85rem; font-weight: 600; letter-spacing: .02em; text-align: center;
-}
-
 .background-grain { position: fixed; z-index: 9999; inset: 0; overflow: hidden; pointer-events: none; }
 .background-grain::before {
   content: "";

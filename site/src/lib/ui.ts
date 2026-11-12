@@ -22,7 +22,6 @@ export const ui = {
   longreadPending: 'Текст о Покр Айрум готовится.',
   notFoundTitle: 'Страница не найдена',
   notFoundText: 'Возможно, ссылка устарела. Начните с поля предметов или со списка проектов.',
-  previewBanner: 'Альфа-версия для команды · не для распространения',
   instagram: 'Instagram',
   partners: 'Партнёры',
 } as const;
