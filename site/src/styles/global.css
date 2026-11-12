@@ -85,6 +85,11 @@ h1, h2, h3 { line-height: 1.05; letter-spacing: -.02em; font-weight: 600; }
   .title-break { display: none; }
   .title-menu .title-place { flex-direction: row; gap: .28em; }
 }
+/* Portrait tablets: «ПОКР АЙРУМ» shares one line, so the title takes three lines; it is ≈ 6.4em wide. */
+@media (orientation: portrait) and (min-width: 600px) {
+  .title-menu { font-size: 15.4cqi; }
+  .title-menu .title-place { flex-direction: row; gap: .28em; }
+}
 .title-menu a {
   display: inline-flex; align-items: center;
   min-height: 48px;

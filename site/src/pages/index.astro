@@ -24,7 +24,7 @@ const hideInstruction = variants
         {variant.keywords && variant.keywords.length > 0 && (
           <p class="home-keywords">
             {variant.keywords.map((keyword, index) => (
-              <>{index > 0 && <span aria-hidden="true"> · </span>}<span class="keyword">{keyword}</span>{index < variant.keywords!.length - 1 && <span class="visually-hidden">,</span>}</>
+              <>{index > 0 && <span aria-hidden="true">{'\u00a0· '}</span>}<span class="keyword">{keyword}</span>{index < variant.keywords!.length - 1 && <span class="visually-hidden">,</span>}</>
             ))}
           </p>
         )}
