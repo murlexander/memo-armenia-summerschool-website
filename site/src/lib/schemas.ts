@@ -106,7 +106,10 @@ export const siteSchema = z.object({
   defaultHomeVariant: z.enum(['1', '2', '3']),
   footer: z.object({
     text: nonEmpty,
-    partners: z.array(nonEmpty).default([]),
+    // A partner is a name, or a name with a link to its site.
+    partners: z
+      .array(z.union([nonEmpty.transform((name) => ({ name })), z.object({ name: nonEmpty, url: z.string().url().startsWith('https://') })]))
+      .default([]),
     instagram: z.string().regex(/^[A-Za-z0-9._]+$/).optional(),
   }),
 });

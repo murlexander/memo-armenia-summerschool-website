@@ -10,14 +10,14 @@ const { footer } = Astro.props.site;
 ---
 <footer class="site-footer">
   <p class="footer-text">{footer.text}</p>
-  {footer.partners.length > 0 && (
-    <ul class="footer-partners" aria-label={ui.partners}>
-      {footer.partners.map((partner) => <li>{partner}</li>)}
-    </ul>
-  )}
   {footer.instagram && (
     <p class="footer-social">
       <a href={`https://www.instagram.com/${footer.instagram}/`} rel="noopener">{ui.instagram} @{footer.instagram}</a>
     </p>
+  )}
+  {footer.partners.length > 0 && (
+    <ul class="footer-partners" aria-label={ui.partners}>
+      {footer.partners.map((partner) => <li>{partner.url ? <a href={partner.url} rel="noopener">{partner.name}</a> : partner.name}</li>)}
+    </ul>
   )}
 </footer>
