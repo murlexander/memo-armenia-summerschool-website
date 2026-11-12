@@ -72,6 +72,9 @@ const team = text.team.every((name) => name === null) && text.team.length > 0 ? 
                   <Image src={object.data.image} alt={objectText.alt ?? ui.pendingAlt} widths={[320, 640]} sizes="320px" format="webp" />
                   <span>{objectText.label ?? <Pending text={ui.pendingTitle} />} <span class="visually-hidden">— {ui.findOnField}</span><span aria-hidden="true">↗</span></span>
                 </a>
+                {objectText.story !== undefined && (
+                  <p class="object-story-text">{objectText.story ?? <Pending text={ui.pendingText} />}</p>
+                )}
                 {note && <p class="object-note">{note}</p>}
               </li>
             ))}

@@ -141,10 +141,12 @@ export async function localizeProject(project: Project, lang: Lang) {
 
 export type LocalProject = Awaited<ReturnType<typeof localizeProject>>;
 
-export function localizeObject(object: MuseumObject, lang: Lang): { label: string | null; alt: string | null } {
-  if (lang === defaultLang) return { label: object.data.label, alt: object.data.alt };
+/** story: undefined when the object has none, null when it is not translated yet. */
+export function localizeObject(object: MuseumObject, lang: Lang): { label: string | null; alt: string | null; story?: string | null } {
+  const { label, alt, story } = object.data;
+  if (lang === defaultLang) return { label, alt, story };
   const own = object.data.translations[lang];
-  return { label: own?.label ?? null, alt: own?.alt ?? null };
+  return { label: own?.label ?? null, alt: own?.alt ?? null, story: story ? own?.story ?? null : undefined };
 }
 
 export async function getLongreadFor(lang: Lang) {

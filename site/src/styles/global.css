@@ -185,6 +185,17 @@ html.js .object-field[data-ready="false"] { opacity: 0; animation: field-reveal 
 .object-card:focus-visible img { filter: drop-shadow(0 20px 14px rgb(47 35 23 / 22%)); }
 .object-card:focus-visible { outline: 3px solid var(--lichen); outline-offset: 6px; }
 .object-card:target { outline: 3px dashed var(--clay); outline-offset: 6px; }
+/* The object's story: a small card under the object on hover and focus (fine pointers only). */
+.object-story { display: none; }
+.object-field[data-mode="fine"] .object-card:hover .object-story,
+.object-field[data-mode="fine"] .object-card:focus-visible .object-story {
+  position: absolute; z-index: 3; top: calc(100% - .5rem); left: 50%; transform: translateX(-50%);
+  width: max(100%, 17rem); max-width: 22rem; padding: .75rem .9rem;
+  border-radius: .7rem; background: var(--paper-light); box-shadow: 0 10px 28px rgb(47 35 23 / 18%);
+  display: block; color: var(--ink); font-size: .85rem; line-height: 1.45; pointer-events: none;
+}
+.object-story b { display: block; margin-bottom: .25rem; font-size: .9rem; }
+.object-story > span { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 8; overflow: hidden; }
 
 /* Team preview: open questions, on FOUND and project pages only (the LOST field shows just the objects).
    A clay «!» = something the team has to decide; dashed boxes stand in for a missing object, text or photos. */
@@ -235,8 +246,9 @@ html.js .object-field[data-ready="false"] { opacity: 0; animation: field-reveal 
 .project-objects img { width: 100%; height: 11rem; object-fit: contain; filter: drop-shadow(0 12px 9px rgb(47 35 23 / 16%)); }
 .project-objects a > span { font-size: .95rem; font-weight: 600; }
 .project-objects a:hover > span { text-decoration: underline; }
-.project-objects li { position: relative; }
-.object-note { max-width: 13rem; margin: .1rem 0 0; padding: 0 .75rem; color: var(--clay); font-size: .8rem; font-weight: 600; line-height: 1.35; }
+.project-objects li { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: .25rem 1.25rem; }
+.object-story-text { flex: 1 1 16rem; max-width: 38ch; margin: 0; color: var(--muted); font-size: .9rem; line-height: 1.5; }
+.object-note { flex-basis: 100%; max-width: 13rem; margin: .1rem 0 0; padding: 0 .75rem; color: var(--clay); font-size: .8rem; font-weight: 600; line-height: 1.35; }
 .project-object-placeholder { width: min(100%, 13rem); height: 13rem; }
 .project-media-placeholder { margin: 0; aspect-ratio: 4 / 3; }
 .project-text { max-width: 68ch; margin-top: clamp(2.5rem, 6vw, 4.5rem); }

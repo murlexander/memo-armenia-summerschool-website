@@ -15,6 +15,8 @@ export type FieldObject = {
   href: string;
   /** Short object name, shown as the touch label. */
   label: string;
+  /** The object's story, shown on hover and focus with a fine pointer. */
+  story?: string;
   projectTitle: string;
   alt: string;
   /** Optimized web image (webp), with a smaller candidate in srcset. */

@@ -23,6 +23,7 @@ export async function getFieldObjects(lang: Lang): Promise<FieldObject[]> {
       id: data.id,
       href: projectHref(project.data.slug, lang),
       label: text.label ?? ui.pendingTitle,
+      story: text.story === undefined ? undefined : text.story ?? ui.pendingText,
       projectTitle: projectTitle ?? ui.pendingTitle,
       alt: text.alt ?? ui.pendingAlt,
       image: {

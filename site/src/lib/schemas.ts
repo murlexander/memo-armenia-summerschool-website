@@ -82,7 +82,7 @@ export const projectTranslationSchema = z.object({
   media: z.array(z.object({ alt: optionalText, caption: optionalText })).optional(),
 });
 
-const objectTranslation = z.object({ label: optionalText, alt: optionalText });
+const objectTranslation = z.object({ label: optionalText, alt: optionalText, story: optionalText });
 
 export const siteTranslationSchema = z.object({
   title: optionalText,
@@ -110,6 +110,8 @@ export function objectSchema<I extends z.ZodType>(image: () => I) {
         published: z.boolean().default(false),
         label: nonEmpty,
         alt: nonEmpty,
+        /** The team's note on where the object comes from and what it meant (Предметы.xlsx «Описание»). */
+        story: optionalText,
         width: z.number().int().positive(),
         height: z.number().int().positive(),
         bounds: z.object({ x: unit, y: unit, width: unit.positive(), height: unit.positive() }),

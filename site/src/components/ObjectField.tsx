@@ -131,6 +131,7 @@ export default function ObjectField({ objects, label, describedBy, anchorPrefix,
               <span className="visually-hidden">, {projectWord} «{object.projectTitle}»</span>
               <span className="object-arrow" aria-hidden="true">↗</span>
             </span>
+            {object.story && <span className="object-story" aria-hidden="true"><b>{object.label}</b><span>{object.story}</span></span>}
             <span className="object-figure">
               <img
                 src={object.image.src}
