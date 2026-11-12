@@ -1,10 +1,11 @@
 import { defineCollection } from 'astro:content';
 import { file, glob, type Loader } from 'astro/loaders';
 import { parse as parseYaml } from 'yaml';
+import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { contentDir, isPreview } from './lib/build-env.ts';
-import { objectSchema, pageSchema, projectSchema, projectTranslationSchema, siteSchema, siteTranslationSchema } from './lib/schemas.ts';
+import { mapSchema, objectSchema, pageSchema, projectSchema, projectTranslationSchema, siteSchema, siteTranslationSchema } from './lib/schemas.ts';
 
 const root = contentDir();
 const base = (...segments: string[]) => pathToFileURL(path.join(root, ...segments) + path.sep);
@@ -79,4 +80,22 @@ const site = defineCollection({
   schema: siteSchema,
 });
 
-export const collections = { projects, objects, pages, site, projectTranslations, siteTranslations };
+// The map is one entry "map": map.yaml (places) with map-base.json (the drawing) under `base`.
+// A content directory without map.yaml simply has no map.
+const mapFile = path.join(root, 'map.yaml');
+const mapBaseFile = path.join(root, 'map-base.json');
+const map = defineCollection({
+  loader: publishedOnly({
+    name: 'map-loader',
+    load: async ({ store, parseData }) => {
+      store.clear();
+      if (!fs.existsSync(mapFile)) return;
+      const places = parseYaml(fs.readFileSync(mapFile, 'utf8')) as Record<string, unknown>;
+      const base: unknown = JSON.parse(fs.readFileSync(mapBaseFile, 'utf8'));
+      store.set({ id: 'map', data: await parseData({ id: 'map', data: { ...places, base } }) });
+    },
+  }),
+  schema: mapSchema,
+});
+
+export const collections = { projects, objects, pages, site, projectTranslations, siteTranslations, map };

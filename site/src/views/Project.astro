@@ -3,6 +3,7 @@ import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import Figure from '../components/Figure.astro';
 import Pending from '../components/Pending.astro';
+import PlaceMap from '../components/PlaceMap.astro';
 import Prose from '../components/Prose.astro';
 import YouTube from '../components/YouTube.astro';
 import { href, localizeObject, localizeProject, objectAnchor, preview, type ObjectEntry, type Project } from '../lib/content.ts';
@@ -88,6 +89,7 @@ const team = text.team.every((name) => name === null) && text.team.length > 0 ? 
             {body === null ? <Pending text={ui.pendingText} block /> : body ? <Prose source={body} /> : <p class="placeholder-text">{ui.noText}</p>}
           </section>
         ))}
+        <PlaceMap lang={lang} mode="project" projectId={data.id} />
       </div>
       {data.media.length === 0 && preview && (
         <section class="project-media" aria-label={ui.media}>

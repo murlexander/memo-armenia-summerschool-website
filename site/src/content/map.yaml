@@ -1,0 +1,37 @@
+# Fictional fixture: places on an invented map, so the site builds and tests without private content.
+published: true
+places:
+  - id: pl901
+    name: "Пример лагеря"
+    kind: camp
+    lat: 50.0050
+    lon: 10.0050
+  - id: pl902
+    name: "Пример места проекта 1"
+    kind: project
+    lat: 50.0045
+    lon: 10.0035
+    projectIds: [p901]
+  - id: pl903
+    name: "Пример места проекта 2"
+    kind: project
+    lat: 50.0030
+    lon: 10.0072
+    projectIds: [p902, p903]
+  - id: pl904
+    name: "Пример места проекта 3"
+    kind: project
+    lat: 50.0062
+    lon: 10.0066
+    projectIds: [p903]
+  - id: pl905
+    name: "Пример заметки"
+    description: "Пример описания заметки."
+    kind: note
+    lat: 50.0046
+    lon: 10.0037
+  - id: pl906
+    name: "Пример далёкой заметки"
+    kind: note
+    lat: 50.0200
+    lon: 10.0060

@@ -41,6 +41,7 @@ objects/<object-id>/image.png     the cut-out, transparent background
 pages/pokr-ayrum/ru.mdx           longread; images alongside (en.mdx, hy.mdx for translations)
 projects/<project-id>/en.md, hy.md  optional translations: title, studio, team, materials, history, fromAuthor, media alt/caption
 site.en.yaml, site.hy.yaml        optional translations of site.yaml text (objects carry theirs under `translations`)
+map.yaml, map-base.json           places (name, note, coordinates, projectIds) and the self-drawn base map (OpenStreetMap-derived); shown on ПОКР АЙРУМ and, per project, as «Где это»
 ```
 
 - **IDs are permanent and ASCII.** Object IDs come from the team's photo numbers (`obect_001_01_X1_0056.jpg` becomes `o0056`). Project IDs are assigned at first import (`p001`…) and never reused. Slugs are transliterated titles; once published, a slug only changes with a redirect from the old one. Titles, file names and sheet rows are mutable and are never used as keys.

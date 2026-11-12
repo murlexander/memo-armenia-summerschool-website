@@ -351,3 +351,105 @@ html.js .object-field[data-ready="false"] { opacity: 0; animation: field-reveal 
 /* Text not yet written in this language. */
 .pending { color: var(--muted); font-style: italic; text-decoration: underline dashed var(--line); text-decoration-thickness: 2px; text-underline-offset: .2em; }
 .pending-block { margin: 0; padding: 1rem 1.2rem; border: 2px dashed var(--line); border-radius: .8rem; text-decoration: none; }
+
+/* Map of places (PlaceMap.astro): an ink-on-paper drawing from OpenStreetMap and SRTM relief.
+   Project places are clay, village notes paper with a muted ring, Green Camp a lichen square.
+   Line widths stay in screen pixels at every size (non-scaling strokes). */
+.place-map { margin-top: clamp(3rem, 8vw, 6rem); container-type: inline-size; }
+.place-map > h2 { margin: 0 0 clamp(1rem, 3vw, 1.75rem); font-size: clamp(1.5rem, 3vw, 2.2rem); }
+.place-map-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(1.5rem, 4vw, 3rem); }
+.place-map-figure { position: relative; margin: 0 calc(-1 * var(--gutter)); }
+.place-map-svg { display: block; width: 100%; height: auto; background: var(--paper-light); }
+.place-map-svg path, .place-map-svg line, .place-map-svg circle, .place-map-svg rect { vector-effect: non-scaling-stroke; }
+.pm-base path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.pm-base .pm-contour { stroke: var(--line); stroke-width: .8; opacity: .8; }
+.pm-base .pm-contour-index { stroke: var(--line); stroke-width: 1.4; }
+.pm-base .pm-water { fill: rgb(107 121 113 / 22%); stroke: var(--oxidized); stroke-width: .8; }
+.pm-base .pm-cliff { stroke: var(--muted); stroke-width: 3; stroke-dasharray: 1 4; opacity: .45; }
+.pm-base .pm-stream { stroke: var(--oxidized); stroke-width: 1.2; opacity: .8; }
+.pm-base .pm-river { stroke: var(--oxidized); stroke-width: 4; opacity: .7; }
+.pm-base .pm-track { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 5 4; opacity: .7; }
+.pm-base .pm-path { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 1 3; }
+.pm-base .pm-road { stroke: var(--muted); stroke-width: 1.6; opacity: .85; }
+.pm-base .pm-road-major { stroke: var(--ink); stroke-width: 2.4; opacity: .7; }
+.pm-base .pm-rail { stroke: var(--ink); stroke-width: 1.4; stroke-dasharray: 8 3; opacity: .7; }
+.pm-base .pm-cableway { stroke: var(--ink); stroke-width: 1; stroke-dasharray: 2 6; }
+.pm-base .pm-building { fill: var(--line); stroke: none; }
+.pm-leaders line { stroke: var(--muted); stroke-width: 1; }
+.pm-leaders circle { fill: var(--muted); }
+.pm-hit { fill: transparent; stroke: none; }
+.pm-dot { stroke-width: 1.5; transition: transform 160ms ease; transform-box: fill-box; transform-origin: center; }
+.pm-marker text { font-size: 13px; font-weight: 700; text-anchor: middle; pointer-events: none; }
+.pm-project .pm-dot { fill: var(--clay); stroke: var(--paper-light); }
+.pm-project text { fill: var(--paper-light); }
+.pm-note .pm-dot { fill: var(--paper-light); stroke: var(--muted); }
+.pm-note text { fill: var(--muted); }
+.pm-camp .pm-dot { fill: var(--lichen); stroke: var(--paper-light); }
+.pm-arrow { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.pm-linked { cursor: pointer; }
+.pm-marker[data-active] .pm-dot, .pm-linked:hover .pm-dot { transform: scale(1.3); }
+.pm-project[data-active] .pm-dot { fill: var(--ink); }
+/* Narrow: the drawing keeps a readable scale and swipes sideways inside its frame. */
+.place-map-scroll { overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; }
+@container (max-width: 40rem) { .place-map-scroll .place-map-svg { width: 40rem; max-width: none; } }
+.place-map-credit {
+  position: absolute; right: .5rem; bottom: .4rem; margin: 0;
+  padding: 0 .4rem; border-radius: .3rem; background: rgb(245 240 231 / 85%);
+  color: var(--muted); font-size: .7rem; line-height: 1.6;
+}
+.place-map-tip {
+  position: absolute; z-index: 2; margin: 0; max-width: min(18rem, 60%);
+  padding: .35rem .6rem; border-radius: .4rem; background: var(--ink); color: var(--paper-light);
+  font-size: .85rem; font-weight: 600; line-height: 1.3; pointer-events: none;
+  transform: translate(.9rem, -50%);
+}
+.place-map-tip[data-side="left"] { transform: translate(calc(-100% - .9rem), -50%); }
+.place-map-tip[hidden] { display: none; }
+
+.place-map-lists { display: grid; gap: 2rem; align-content: start; }
+.place-map-group h3 { margin: 0 0 .5rem; color: var(--muted); font-size: .8rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+.place-map-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); column-gap: 1.5rem; margin: 0; padding: 0; list-style: none; }
+.place-map-list > li { border-top: 1px solid var(--line); }
+.pm-item { display: flex; align-items: flex-start; gap: .7rem; min-height: 48px; padding: .6rem 0; text-decoration: none; }
+a.pm-item:hover .pm-name, .place-map-list > li[data-active] .pm-name { text-decoration: underline; }
+.pm-key {
+  flex: none; display: grid; place-items: center; width: 1.6rem; height: 1.6rem; margin-top: -.05rem;
+  border-radius: 50%; font-size: .75rem; font-weight: 700; line-height: 1;
+}
+.pm-key.pm-project { background: var(--clay); color: var(--paper-light); }
+.pm-key.pm-note { border: 1.5px solid var(--muted); color: var(--muted); }
+.pm-key.pm-camp { border-radius: .3rem; background: var(--lichen); }
+.place-map-list > li[data-active] .pm-key.pm-project { background: var(--ink); }
+.pm-text { display: grid; gap: .1rem; min-width: 0; line-height: 1.35; }
+.pm-name { font-weight: 600; }
+.pm-item-project, .pm-item-note { color: var(--muted); font-size: .9rem; }
+.pm-issue { color: var(--clay); font-size: .8rem; font-weight: 600; }
+.pm-issue::before { content: "! "; }
+.pm-links { display: flex; flex-wrap: wrap; gap: 0 1rem; margin: -.6rem 0 .2rem 2.3rem; padding: 0; list-style: none; font-size: .9rem; }
+.pm-links a { display: inline-flex; align-items: center; min-height: 48px; }
+
+/* Per-project «where is it» map */
+.place-map-where { margin-top: clamp(2.5rem, 6vw, 4.5rem); }
+.place-map-where h2 { margin: 0 0 1rem; font-size: clamp(1.5rem, 3vw, 2.2rem); }
+.place-map-small { margin: 0; max-width: 28rem; }
+.place-map-small .place-map-svg { border-radius: .8rem; }
+.pm-other { fill: var(--paper-light); stroke: var(--muted); stroke-width: 1; }
+.pm-halo { fill: rgb(166 94 69 / 18%); }
+.pm-here { fill: var(--clay); stroke: var(--paper-light); stroke-width: 2; }
+.place-map-small figcaption { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0 1rem; }
+.place-map-small figcaption > a { display: inline-flex; align-items: center; min-height: 48px; }
+.place-map-credit-inline { color: var(--muted); font-size: .7rem; }
+
+@media (min-width: 640px) {
+  .place-map-figure { margin: 0; }
+  .place-map-svg { border-radius: .8rem; }
+}
+/* Wide: the map on the left, the list beside it. */
+@container (min-width: 68rem) {
+  .place-map-layout { grid-template-columns: minmax(0, 1fr) minmax(17rem, 24rem); align-items: start; }
+  .place-map-figure { position: sticky; top: 1rem; }
+  .place-map-list { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pm-dot { transition: none; }
+}

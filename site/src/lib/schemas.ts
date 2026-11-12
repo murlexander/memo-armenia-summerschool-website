@@ -159,3 +159,47 @@ export const siteSchema = z.object({
 });
 
 export type SiteData = z.infer<typeof siteSchema>;
+
+// Map of places: map.yaml (places, from the team's map) and map-base.json (the drawing under them,
+// from OpenStreetMap and SRTM relief), loaded together as one entry. Both are optional in a content directory.
+const latitude = z.number().min(-90).max(90);
+const longitude = z.number().min(-180).max(180);
+const lonLat = z.tuple([longitude, latitude]);
+const bbox = z
+  .object({ west: longitude, south: latitude, east: longitude, north: latitude })
+  .refine((box) => box.west < box.east && box.south < box.north, { message: 'needs west < east and south < north' });
+
+export const mapPlaceKinds = ['project', 'note', 'camp'] as const;
+export const mapFeatureKinds = ['contour', 'contour-index', 'water', 'cliff', 'stream', 'river', 'track', 'path', 'road', 'road-major', 'rail', 'cableway', 'building'] as const;
+
+export const mapPlaceSchema = z.object({
+  id: asciiId('pl'),
+  /** Russian, as on the team's map. */
+  name: nonEmpty,
+  description: z.string().default(''),
+  kind: z.enum(mapPlaceKinds),
+  lat: latitude,
+  lon: longitude,
+  /** Projects made at this place; empty when not yet matched. */
+  projectIds: z.array(asciiId('p')).default([]),
+});
+
+export const mapBaseSchema = z.object({
+  attribution: nonEmpty,
+  /** Everything is drawn within the extent; the full map shows the frame. */
+  extent: bbox,
+  frame: bbox,
+  /** Lines in drawing order; buildings and water are closed outlines. */
+  features: z.array(z.object({ kind: z.enum(mapFeatureKinds), line: z.array(lonLat).min(2) })),
+});
+
+export const mapSchema = z
+  .object({
+    published: z.boolean().default(false),
+    places: z.array(mapPlaceSchema),
+    base: mapBaseSchema,
+  })
+  .refine((map) => new Set(map.places.map((place) => place.id)).size === map.places.length, { message: 'place ids must be unique', path: ['places'] });
+
+export type MapData = z.infer<typeof mapSchema>;
+export type MapPlace = z.infer<typeof mapPlaceSchema>;

@@ -3,6 +3,7 @@ import { render } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import Figure from '../components/Figure.astro';
 import YouTube from '../components/YouTube.astro';
+import PlaceMap from '../components/PlaceMap.astro';
 import { getLocalSite, getLongreadFor } from '../lib/content.ts';
 import { uiFor, type Lang } from '../lib/ui.ts';
 
@@ -27,5 +28,6 @@ const Content = rendered?.Content;
     <div class="prose longread-body">
       {Content ? <Content components={{ Figure, YouTube }} /> : <p>{ui.longreadPending}</p>}
     </div>
+    <PlaceMap lang={lang} />
   </article>
 </Base>

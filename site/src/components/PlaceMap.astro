@@ -1,0 +1,233 @@
+---
+// Map of places, drawn as a static SVG from map.yaml and map-base.json (no tiles, no third-party requests).
+// mode="full": the whole village with numbered markers and a list of places (the list is what keyboard and
+// screen-reader users navigate; the drawing repeats it for the eye and the mouse).
+// mode="project": a small «where is it» map around one project's places; renders nothing if it has none.
+import { getEntry } from 'astro:content';
+import Pending from './Pending.astro';
+import { getProjects, href, localizeProject, preview, projectHref } from '../lib/content.ts';
+import { frameAround, inside, layoutPlaces, linePath, mapStrings, outsideText, projection, type Box } from '../lib/map.ts';
+import type { MapData } from '../lib/schemas.ts';
+import { defaultLang, uiFor, type Lang } from '../lib/ui.ts';
+
+interface Props {
+  lang: Lang;
+  mode?: 'full' | 'project';
+  /** mode="project": the project whose places to show. */
+  projectId?: string;
+}
+
+const { lang, mode = 'full', projectId } = Astro.props;
+const ui = uiFor(lang);
+const strings = mapStrings[lang];
+
+const entry = await getEntry('map', 'map');
+const map: MapData | undefined = entry && (preview || entry.data.published) ? entry.data : undefined;
+
+// Visible projects the map links to, with their title in this language (null = not translated yet).
+const projects = new Map((await getProjects()).map((project) => [project.data.id, project]));
+const linkFor = async (id: string) => {
+  const project = projects.get(id);
+  if (!project) return [];
+  return [{ id, href: projectHref(project.data.slug, lang), title: (await localizeProject(project, lang)).title }];
+};
+
+const drawBase = (frame: Box) => {
+  const { project } = projection(frame);
+  return map!.base.features.map((feature) => ({
+    kind: feature.kind,
+    d: linePath(feature.line, project, feature.kind === 'building' || feature.kind === 'water'),
+  }));
+};
+
+// Full map
+const radius = 12;
+const full = map && mode === 'full' ? await (async () => {
+  const layout = layoutPlaces(map, radius);
+  const places = await Promise.all(layout.places.map(async (place) => ({
+    ...place,
+    links: (await Promise.all(place.projectIds.map(linkFor))).flat(),
+  })));
+  return { ...layout, places, base: drawBase(map.base.frame) };
+})() : undefined;
+
+// Per-project map
+const small = map && mode === 'project' && projectId ? (() => {
+  const own = map.places.filter((place) => place.projectIds.includes(projectId));
+  if (own.length === 0) return undefined;
+  const frame = frameAround(own, map.base.extent, 640, 420);
+  const { width, height, project } = projection(frame);
+  const others = map.places.filter((place) => !place.projectIds.includes(projectId) && inside(frame, place.lon, place.lat));
+  return {
+    width,
+    height,
+    base: drawBase(frame),
+    own: own.map((place) => project(place.lon, place.lat)),
+    others: others.map((place) => project(place.lon, place.lat)),
+  };
+})() : undefined;
+
+const russian = lang === defaultLang;
+const projectPlaces = full?.places.filter((place) => place.kind === 'project') ?? [];
+const notePlaces = full?.places.filter((place) => place.kind !== 'project') ?? [];
+const r1 = (value: number) => Math.round(value * 10) / 10;
+---
+{full && (
+  <section class="place-map" id="map" aria-labelledby="place-map-title" data-place-map>
+    <h2 id="place-map-title">{strings.title}</h2>
+    <div class="place-map-layout">
+      <figure class="place-map-figure">
+        {/* Narrow screens: the drawing is wider than the screen and swipes sideways. */}
+        <div class="place-map-scroll">
+        <svg class="place-map-svg" viewBox={`0 0 ${full.width} ${full.height}`} aria-hidden="true" focusable="false">
+          <g class="pm-base">
+            {full.base.map((feature) => <path class={`pm-${feature.kind}`} d={feature.d} />)}
+          </g>
+          <g class="pm-leaders">
+            {full.places.filter((place) => !place.outside && Math.hypot(place.marker.x - place.anchor.x, place.marker.y - place.anchor.y) > radius * 0.6).map((place) => (
+              <>
+                <line x1={r1(place.anchor.x)} y1={r1(place.anchor.y)} x2={r1(place.marker.x)} y2={r1(place.marker.y)} />
+                <circle cx={r1(place.anchor.x)} cy={r1(place.anchor.y)} r="2.5" />
+              </>
+            ))}
+          </g>
+          <g class="pm-markers">
+            {full.places.map((place) => {
+              const { x, y } = place.marker;
+              const body = (
+                <>
+                  <circle class="pm-hit" cx={r1(x)} cy={r1(y)} r="26" />
+                  {place.kind === 'camp'
+                    ? <rect class="pm-dot" x={r1(x - radius)} y={r1(y - radius)} width={radius * 2} height={radius * 2} rx="4" />
+                    : <circle class="pm-dot" cx={r1(x)} cy={r1(y)} r={radius} />}
+                  {place.outside && (
+                    <path class="pm-arrow" transform={`translate(${r1(x)} ${r1(y)}) rotate(${{ north: 0, east: 90, south: 180, west: 270 }[place.outside.direction]})`} d={`M-6 ${-radius - 3}L0 ${-radius - 11}L6 ${-radius - 3}`} />
+                  )}
+                  {place.number !== null && <text x={r1(x)} y={r1(y)} dy="0.35em">{place.number}</text>}
+                </>
+              );
+              const kind = `pm-marker pm-${place.kind}${place.links.length ? ' pm-linked' : ''}`;
+              return place.links.length
+                ? <a class={kind} href={place.links[0].href} tabindex="-1" data-place={place.id}>{body}</a>
+                : <g class={kind} data-place={place.id}>{body}</g>;
+            })}
+          </g>
+        </svg>
+        </div>
+        <p class="place-map-credit"><a href="https://www.openstreetmap.org/copyright">{map!.base.attribution}</a></p>
+        <p class="place-map-tip" hidden></p>
+      </figure>
+
+      <div class="place-map-lists">
+        {[{ heading: strings.projects, places: projectPlaces }, { heading: strings.notes, places: notePlaces }].map((group) => group.places.length > 0 && (
+          <section class="place-map-group">
+            <h3>{group.heading}</h3>
+            <ol class="place-map-list">
+              {group.places.map((place) => {
+                // Names without Cyrillic (Green Camp) read the same in every language.
+                const name = russian || !/[а-яё]/i.test(place.name) ? place.name : null;
+                const label = (
+                  <>
+                    <span class={`pm-key pm-${place.kind}`} aria-hidden="true">{place.number ?? ''}</span>
+                    <span class="pm-text">
+                      <span class="pm-name">{name ?? <Pending text={strings.placePending} />}</span>
+                      {place.links.length === 1 && !(name && place.links[0].title?.toLowerCase() === name.toLowerCase()) && <span class="pm-item-project">{place.links[0].title ?? <Pending text={ui.pendingTitle} />}</span>}
+                      {place.description && <span class="pm-item-note">{russian ? place.description : <Pending text={ui.pendingText} />}</span>}
+                      {place.outside && <span class="pm-item-note">{outsideText(lang, place.outside)}</span>}
+                      {preview && russian && place.kind === 'project' && place.links.length === 0 && <span class="pm-issue">{strings.noProject}</span>}
+                    </span>
+                  </>
+                );
+                if (place.links.length === 1) {
+                  return <li data-place={place.id}><a class="pm-item" href={place.links[0].href}>{label}</a></li>;
+                }
+                return (
+                  <li data-place={place.id}>
+                    <div class="pm-item">{label}</div>
+                    {place.links.length > 1 && (
+                      <ul class="pm-links">
+                        {place.links.map((link) => <li><a href={link.href}>{link.title ?? <Pending text={ui.pendingTitle} />}</a></li>)}
+                      </ul>
+                    )}
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+
+{small && (
+  <section class="place-map-where" aria-labelledby="place-map-where-title">
+  <h2 id="place-map-where-title">{strings.where}</h2>
+  <figure class="place-map-small">
+    <svg class="place-map-svg" viewBox={`0 0 ${small.width} ${small.height}`} aria-hidden="true" focusable="false">
+      <g class="pm-base">
+        {small.base.map((feature) => <path class={`pm-${feature.kind}`} d={feature.d} />)}
+      </g>
+      {small.others.map(({ x, y }) => <circle class="pm-other" cx={r1(x)} cy={r1(y)} r="7" />)}
+      {small.own.map(({ x, y }) => (
+        <>
+          <circle class="pm-halo" cx={r1(x)} cy={r1(y)} r="34" />
+          <circle class="pm-here" cx={r1(x)} cy={r1(y)} r="15" />
+        </>
+      ))}
+    </svg>
+    <figcaption>
+      <a href={`${href('pokr-ayrum/', lang)}#map`}>{strings.allPlaces}</a>
+      <span class="place-map-credit-inline"><a href="https://www.openstreetmap.org/copyright">{map!.base.attribution}</a></span>
+    </figcaption>
+  </figure>
+  </section>
+)}
+
+<script>
+  // Progressive enhancement: pointing at a marker or a list entry highlights both and shows the name by the marker.
+  for (const root of document.querySelectorAll<HTMLElement>('[data-place-map]')) {
+    const figure = root.querySelector<HTMLElement>('.place-map-figure');
+    const svg = root.querySelector<SVGSVGElement>('.place-map-svg');
+    const tip = root.querySelector<HTMLElement>('.place-map-tip');
+    if (!figure || !svg || !tip) continue;
+    // Where the drawing scrolls, start at its middle and let the keyboard scroll it too.
+    const scroller = root.querySelector<HTMLElement>('.place-map-scroll');
+    if (scroller && scroller.scrollWidth > scroller.clientWidth) {
+      // Centre on where most project markers are, rather than on the drawing.
+      const dots = [...svg.querySelectorAll('.pm-project .pm-dot')].map((dot) => dot.getBoundingClientRect());
+      const scrollerBox = scroller.getBoundingClientRect();
+      const middle = dots.length ? dots.reduce((sum, dot) => sum + dot.left + dot.width / 2, 0) / dots.length - scrollerBox.left : scroller.scrollWidth / 2;
+      scroller.scrollLeft = middle - scroller.clientWidth / 2;
+      scroller.tabIndex = 0;
+      scroller.setAttribute('role', 'region');
+      scroller.setAttribute('aria-label', root.querySelector('h2')?.textContent ?? '');
+    }
+    let current: string | null = null;
+    const show = (id: string | null) => {
+      if (id === current) return;
+      current = id;
+      for (const element of root.querySelectorAll('[data-active]')) element.removeAttribute('data-active');
+      tip.hidden = true;
+      if (!id) return;
+      const marker = svg.querySelector<SVGGraphicsElement>(`.pm-marker[data-place="${id}"]`);
+      const item = root.querySelector<HTMLElement>(`.place-map-list > li[data-place="${id}"]`);
+      marker?.setAttribute('data-active', '');
+      item?.setAttribute('data-active', '');
+      const name = item?.querySelector('.pm-name')?.textContent?.trim();
+      if (!marker || !name) return;
+      const dot = marker.querySelector<SVGGraphicsElement>('.pm-dot')!.getBoundingClientRect();
+      const box = figure.getBoundingClientRect();
+      tip.textContent = name;
+      tip.hidden = false;
+      tip.style.left = `${dot.left + dot.width / 2 - box.left}px`;
+      tip.style.top = `${dot.top - box.top}px`;
+      tip.dataset.side = dot.left + dot.width / 2 - box.left > box.width / 2 ? 'left' : 'right';
+    };
+    const placeOf = (target: EventTarget | null) => (target instanceof Element ? target.closest<HTMLElement | SVGElement>('[data-place]')?.dataset.place ?? null : null);
+    root.addEventListener('pointerover', (event) => show(placeOf(event.target)));
+    root.addEventListener('pointerleave', () => show(null));
+    root.addEventListener('focusin', (event) => show(placeOf(event.target)));
+    root.addEventListener('focusout', () => show(null));
+  }
+</script>
