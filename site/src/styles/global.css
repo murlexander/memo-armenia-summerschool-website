@@ -80,7 +80,7 @@ h1, h2, h3 { line-height: 1.05; letter-spacing: -.02em; font-weight: 600; }
   font-weight: 700; line-height: 1.16; letter-spacing: -.045em; text-transform: uppercase;
 }
 .title-break { flex-basis: 100%; height: 0; }
-.title-menu .title-place { gap: .28em; }
+.title-menu .title-place { white-space: nowrap; word-spacing: .065em; }
 @media (orientation: landscape) {
   .title-menu { flex-wrap: nowrap; justify-content: space-between; white-space: nowrap; font-size: 7.2cqi; line-height: 1.02; }
   .title-break { display: none; }

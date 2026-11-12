@@ -18,10 +18,8 @@ const current = (name: string) => (section === name ? (sectionIndex ? 'page' : '
     <span class="title-amp" aria-hidden="true">&amp;</span>
     <a href={href('found/')} aria-current={current('found')}>{site.menu.found}</a>
     <span class="title-break" aria-hidden="true"></span>
-    {/* The words are flex items so their gap matches the title's; the space between them stays in the text. */}
-    <a class="title-place" href={href('pokr-ayrum/')} aria-current={current('place')}>
-      {site.menu.place.split(/\s+/).map((word, index) => <>{index > 0 && ' '}<span>{word}</span></>)}
-    </a>
+    {/* One text, so the underline runs under both words; word-spacing matches the title's gaps. */}
+    <a class="title-place" href={href('pokr-ayrum/')} aria-current={current('place')}>{site.menu.place}</a>
   </nav>
   {site.phrase && <p class="site-phrase">{site.phrase}</p>}
 </header>
