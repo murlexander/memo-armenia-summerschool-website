@@ -2,7 +2,7 @@
 
 Website for the Person in History (Человек в истории) creative research summer school held with Green Camp in Pokr Ayrum, Lori region, Armenia. It is a small digital museum: visitors start from objects found in the village, open the participants' projects made from them, and read about the place.
 
-**Status, November 2026:** moving from the fictional prototype to real content. The live site shows the team alpha: real but not yet approved material, hidden from search engines, with every person's name replaced by «[имя]».
+**Status, November 2026:** moving from the fictional prototype to real content. The live site shows the team alpha: real but not yet approved material, hidden from search engines, with participants named by first name only.
 
 Live: https://murlexander.github.io/memo-armenia-summerschool-website/
 
@@ -52,7 +52,7 @@ SITE_OUT_DIR=/absolute/path/outside/this/repo/alpha-site \
 npm run alpha
 ```
 
-`npm run alpha` checks the content and builds with `SITE_PREVIEW=1`: structural problems fail, while gaps the alpha marks visibly (missing text, photos, objects, open `issues`) only warn. The image cache goes to `$SITE_OUT_DIR.cache`; the content store is rebuilt each time so schema changes apply. View it with `SITE_PREVIEW=1 SITE_OUT_DIR=… npx astro preview`. Never commit that output. The live alpha is deployed only by the private repo's `tools/deploy-alpha.mjs`, which builds a name-redacted copy and pushes it to `gh-pages`. `npm run dev` with `SITE_PREVIEW=1` works too, but keeps its content cache in the git-ignored `site/.astro/`.
+`npm run alpha` checks the content and builds with `SITE_PREVIEW=1`: structural problems fail, while gaps the alpha marks visibly (missing text, photos, objects, open `issues`) only warn. The image cache goes to `$SITE_OUT_DIR.cache`; the content store is rebuilt each time so schema changes apply. View it with `SITE_PREVIEW=1 SITE_OUT_DIR=… npx astro preview`. Never commit that output. The live alpha is deployed only by the private repo's `tools/deploy-alpha.mjs`, which checks that no participant's surname appears, builds it and pushes it to `gh-pages`. `npm run dev` with `SITE_PREVIEW=1` works too, but keeps its content cache in the git-ignored `site/.astro/`.
 
 ## Run the prototype
 

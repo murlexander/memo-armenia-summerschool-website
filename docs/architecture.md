@@ -7,7 +7,7 @@ Current technical decisions for the real-content site. The prototype-phase plan 
 - **Astro, static output, TypeScript.** The site is a few page types plus ~40 project pages and a longread, so it needs real shareable URLs, content collections and a build-time image pipeline, not a client-side app.
 - **Astro markup and a small script for the object field.** The collage uses the seeded solver in `site/src/lib/collage-layout.ts` ([placement contract](collage-algorithm.md)). Astro renders the links, labels and images; the browser receives only the geometry needed to place them for its screen. Resizing, fresh visit seeds and Back restoration work without a client framework.
 - **MDX** for the longread, so it can place photos and YouTube embeds inline.
-- **One build path, one deploy.** GitHub Actions builds `site/` and deploys it to GitHub Pages, with Astro's `base` set to `/memo-armenia-summerschool-website/` until the project has its own domain. Until the cutover, the `gh-pages` branch serves the team alpha with every name replaced by «[имя]», deployed from the private repo's `tools/deploy-alpha.mjs`; at cutover, delete `prototype/` and the `gh-pages` branch.
+- **One build path, one deploy.** GitHub Actions builds `site/` and deploys it to GitHub Pages, with Astro's `base` set to `/memo-armenia-summerschool-website/` until the project has its own domain. Until the cutover, the `gh-pages` branch serves the team alpha (first names only, never a participant's surname), deployed from the private repo's `tools/deploy-alpha.mjs`; at cutover, delete `prototype/` and the `gh-pages` branch.
 
 ## Migration
 
