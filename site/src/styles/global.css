@@ -62,6 +62,9 @@ h1, h2, h3 { line-height: 1.05; letter-spacing: -.02em; font-weight: 600; }
   animation: background-grain-shift var(--grain-rate) steps(1) infinite;
   will-change: transform;
 }
+/* Dense screens (iPad, phones, Retina): half the size, so one noise unit is one device pixel instead of a 2×2 blur;
+   finer grain reads lighter, so a little stronger. */
+@media (min-resolution: 1.5dppx) { .background-grain::before { background-size: 512px 512px; opacity: calc(var(--grain-strength) * 1.35); } }
 @keyframes background-grain-shift {
   0% { transform: translate3d(0, 0, 0); }
   25% { transform: translate3d(-3%, 2%, 0); }
