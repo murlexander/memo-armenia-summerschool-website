@@ -6,7 +6,7 @@
 import { getEntry } from 'astro:content';
 import Pending from './Pending.astro';
 import { getProjects, href, localizeProject, preview, projectHref } from '../lib/content.ts';
-import { frameAround, inside, layoutPlaces, linePath, mapStrings, outsideText, projection, type Box } from '../lib/map.ts';
+import { frameAround, inside, layoutPlaces, linePath, mapStrings, outsideText, projection, tallerFrame, type Box } from '../lib/map.ts';
 import type { MapData } from '../lib/schemas.ts';
 import { defaultLang, uiFor, type Lang } from '../lib/ui.ts';
 
@@ -51,18 +51,31 @@ const full = map && mode === 'full' ? await (async () => {
   return { ...layout, places, base: drawBase(map.base.frame) };
 })() : undefined;
 
-// Per-project map
+// Per-project map. By default its box shows the frame around the project's places; on the project page it
+// takes the height of the left column, from `shortest` (still showing every own place with a margin) up to
+// `tallest` times its width. The drawing covers the tallest box, centred on the frame, and
+// preserveAspectRatio="slice" crops it to the box: the full width always shows, and a taller box shows more of
+// the surroundings to the north and south instead of zooming in.
+const shortest = 0.5;
+const tallest = 1.4;
 const small = map && mode === 'project' && projectId ? (() => {
   const own = map.places.filter((place) => place.projectIds.includes(projectId));
   if (own.length === 0) return undefined;
   const frame = frameAround(own, map.base.extent, 640, 420);
-  const { width, height, project } = projection(frame);
-  const others = map.places.filter((place) => !place.projectIds.includes(projectId) && inside(frame, place.lon, place.lat));
+  const drawn = tallerFrame(frame, map.base.extent, tallest);
+  const { width, height, project, metresPerUnit } = projection(drawn);
+  const others = map.places.filter((place) => !place.projectIds.includes(projectId) && inside(drawn, place.lon, place.lat));
+  const ownPoints = own.map((place) => project(place.lon, place.lat));
+  // The band about the middle that every own place needs, with a 90 m margin (as frameAround).
+  const needed = (2 * Math.max(...ownPoints.map(({ y }) => Math.abs(y - height / 2))) + (2 * 90) / metresPerUnit) / width;
+  const frameRatio = projection(frame).height / width;
   return {
     width,
     height,
-    base: drawBase(frame),
-    own: own.map((place) => project(place.lon, place.lat)),
+    frameRatio,
+    shortestRatio: Math.min(frameRatio, Math.max(shortest, needed)),
+    base: drawBase(drawn),
+    own: ownPoints,
     others: others.map((place) => project(place.lon, place.lat)),
   };
 })() : undefined;
@@ -163,8 +176,8 @@ const r1 = (value: number) => Math.round(value * 10) / 10;
 {small && (
   <section class="place-map-where" aria-labelledby="place-map-where-title">
   <h2 id="place-map-where-title">{strings.where}</h2>
-  <figure class="place-map-small">
-    <svg class="place-map-svg" viewBox={`0 0 ${small.width} ${small.height}`} aria-hidden="true" focusable="false">
+  <figure class="place-map-small" style={`--map-frame: ${small.frameRatio.toFixed(4)}; --map-shortest: ${small.shortestRatio.toFixed(4)}; --map-tallest: ${(small.height / small.width).toFixed(4)}`}>
+    <svg class="place-map-svg" viewBox={`0 0 ${small.width} ${small.height}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
       <g class="pm-base">
         {small.base.map((feature) => <path class={`pm-${feature.kind}`} d={feature.d} />)}
       </g>

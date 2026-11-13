@@ -109,6 +109,19 @@ export function frameAround(places: Pick<MapPlace, 'lon' | 'lat'>[], extent: Box
   return { west: lon - halfLon, east: lon + halfLon, south: lat - halfLat, north: lat + halfLat };
 }
 
+/**
+ * The frame grown north and south about its centre until its height is `ratio` times its width (in metres),
+ * staying inside the extent. A box taller than the frame then shows more of the surroundings instead of
+ * zooming in, and the frame itself stays in the middle.
+ */
+export function tallerFrame(frame: Box, extent: Box, ratio: number): Box {
+  const midLat = (frame.south + frame.north) / 2;
+  const widthM = (frame.east - frame.west) * metresPerDegreeLon(midLat);
+  const wanted = (widthM * ratio) / metresPerDegreeLat / 2;
+  const half = Math.max((frame.north - frame.south) / 2, Math.min(wanted, midLat - extent.south, extent.north - midLat));
+  return { ...frame, south: midLat - half, north: midLat + half };
+}
+
 export type LaidOutPlace = MapPlace & {
   /** Shown on the dot and in the list; the camp has none. */
   number: number | null;

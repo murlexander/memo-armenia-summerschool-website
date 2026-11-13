@@ -4,7 +4,7 @@ import path from 'node:path';
 import test from 'node:test';
 import { parse as parseYaml } from 'yaml';
 import { siteDir } from './build-env.ts';
-import { frameAround, layoutPlaces, linePath, offFrame, outsideText, projection, spreadMarkers } from './map.ts';
+import { frameAround, layoutPlaces, linePath, offFrame, outsideText, projection, spreadMarkers, tallerFrame } from './map.ts';
 import { mapSchema } from './schemas.ts';
 
 const fixture = path.join(siteDir, 'src', 'content');
@@ -64,4 +64,19 @@ test('a project frame fits its places and stays within the extent', () => {
   assert.ok(frame.west >= extent.west && frame.south >= extent.south && frame.east <= extent.east && frame.north <= extent.north);
   const wide = frameAround([{ lon: 10.002, lat: 50.005 }, { lon: 10.018, lat: 50.005 }], extent, 600, 400);
   assert.ok(wide.west < 10.002 && wide.east > 10.018);
+});
+
+test('a taller frame keeps the frame in its middle and stays within the extent', () => {
+  const extent = { west: 10, south: 50, east: 10.02, north: 50.01 };
+  const frame = frameAround([{ lon: 10.01, lat: 50.005 }], extent, 600, 400);
+  const tall = tallerFrame(frame, extent, 1.4);
+  assert.equal(tall.west, frame.west);
+  assert.equal(tall.east, frame.east);
+  assert.ok(Math.abs((tall.south + tall.north) / 2 - (frame.south + frame.north) / 2) < 1e-9);
+  const { width, height } = projection(tall);
+  assert.ok(Math.abs(height / width - 1.4) < 0.01, `ratio ${height / width}`);
+  // Near the extent's edge it grows only as far as the extent allows, and never shrinks.
+  const edge = frameAround([{ lon: 10.01, lat: 50.0095 }], extent, 600, 400);
+  const capped = tallerFrame(edge, extent, 1.4);
+  assert.ok(capped.north <= extent.north + 1e-9 && capped.south >= edge.south - 1e-9 && capped.north >= edge.north - 1e-9);
 });

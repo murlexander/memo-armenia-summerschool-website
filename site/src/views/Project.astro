@@ -1,6 +1,6 @@
 ---
-// A project page in three blocks: who made it, from what and where (with the place on the right; films have no
-// place); its story with the main photo or video; the process photos in one row.
+// A project page: its title across the page, then three blocks: who made it, from what and where (with the place on
+// the right; films have no place); its story with the main photo or video; the process photos in one row.
 import type { ImageMetadata } from 'astro';
 import { getImage, Image } from 'astro:assets';
 import { getEntry } from 'astro:content';
@@ -68,36 +68,37 @@ const backTo = { lost: { href: href('', lang), label: ui.allObjects }, place: { 
   <article class="page-shell project">
     <p class="back-row"><a class="back-link" href={href('found/', lang)} data-back={JSON.stringify(backTo)}>{`← ${ui.allProjects}`}</a></p>
 
+    <header class="project-head">
+      <h1>{text.title ?? <Pending text={ui.pendingTitle} />}</h1>
+    </header>
+
     <div class="project-row project-intro">
       <div class="project-main">
-        <header class="project-head">
-          <h1>{text.title ?? <Pending text={ui.pendingTitle} />}</h1>
-          <dl class="project-facts">
+        <dl class="project-facts">
+          <div>
+            <dt>{ui.team}</dt>
+            <dd>{team === null ? <Pending text={ui.pendingName} /> : team || (preview ? ui.notSpecified : '')}</dd>
+          </div>
+          {text.studio !== undefined && (
             <div>
-              <dt>{ui.team}</dt>
-              <dd>{team === null ? <Pending text={ui.pendingName} /> : team || (preview ? ui.notSpecified : '')}</dd>
+              <dt>{ui.studio}</dt>
+              <dd>{text.studio ?? <Pending text={ui.pendingName} />}</dd>
             </div>
-            {text.studio !== undefined && (
-              <div>
-                <dt>{ui.studio}</dt>
-                <dd>{text.studio ?? <Pending text={ui.pendingName} />}</dd>
-              </div>
-            )}
-            <div class="project-fact-materials">
-              <dt>{ui.materials}</dt>
-              <dd>{text.materials === null ? <Pending text={ui.pendingText} /> : text.materials.trim() ? <Prose source={text.materials} /> : preview ? ui.notSpecified : ''}</dd>
-            </div>
-          </dl>
-        </header>
+          )}
+          <div class="project-fact-materials">
+            <dt>{ui.materials}</dt>
+            <dd>{text.materials === null ? <Pending text={ui.pendingText} /> : text.materials.trim() ? <Prose source={text.materials} /> : preview ? ui.notSpecified : ''}</dd>
+          </div>
+        </dl>
 
         <section class="project-objects" aria-labelledby="project-objects">
-          <h2 id="project-objects" class="visually-hidden">{ui.projectObjects}</h2>
+          <h2 id="project-objects">{ui.projectObject}</h2>
           <ul>
             {objects.map(({ object, text: objectText }) => (
-              <li>
-                <a href={`${href('', lang)}#${objectAnchor(object.data.id)}`}>
-                  <Image src={object.data.image} alt={objectText.alt ?? ui.pendingAlt} widths={[320, 640]} sizes="320px" format="webp" />
-                  <span>{objectText.label ?? <Pending text={ui.pendingTitle} />} <span class="visually-hidden">— {ui.findOnField}</span><span aria-hidden="true">↗</span></span>
+              <li class="project-object">
+                <a class="project-object-link" href={`${href('', lang)}#${objectAnchor(object.data.id)}`}>
+                  <Image src={object.data.image} alt={objectText.alt ?? ui.pendingAlt} widths={[320, 640]} sizes="208px" format="webp" />
+                  <span class="project-object-name">{objectText.label ?? <Pending text={ui.pendingTitle} />} <span class="visually-hidden">— {ui.findOnField}</span><span aria-hidden="true">↗</span></span>
                 </a>
                 {objectText.story !== undefined && (
                   <p class="object-story-text">{objectText.story ?? <Pending text={ui.pendingText} />}</p>
@@ -105,7 +106,7 @@ const backTo = { lost: { href: href('', lang), label: ui.allObjects }, place: { 
               </li>
             ))}
             {status !== 'certain' && preview && (
-              <li class="project-object-circle">
+              <li class="project-object project-object-circle">
                 <a href={`${href('', lang)}#${objectAnchor(data.id)}`} aria-label={`${status === 'unknown' ? ui.noObject : ui.objectUncertain} — ${ui.findOnField}`}>
                   <span class="project-circle" data-kind={status} aria-hidden="true"></span>
                 </a>
