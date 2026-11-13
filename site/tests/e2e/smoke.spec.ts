@@ -70,6 +70,10 @@ test('the object field places every object as a separate link that resolves', as
 test('object → project → Back returns to the field', async ({ page }) => {
   await page.goto(base);
   const first = page.locator('.object-field[data-ready="true"] a[data-testid="field-object"]').first();
+  await expect(first).toBeVisible();
+  const before = await page.locator('.object-field a[data-testid="field-object"]').evaluateAll((links) => links.map((link) => ({
+    id: link.id, style: link.getAttribute('style'),
+  })));
   const href = await first.getAttribute('href');
   await first.click();
   await expect(page).toHaveURL(new RegExp(`${href}$`));
@@ -77,6 +81,51 @@ test('object → project → Back returns to the field', async ({ page }) => {
   await page.goBack();
   await expect(page).toHaveURL(new RegExp(`${base}$`));
   await expect(page.locator('.object-field[data-ready="true"] a[data-testid="field-object"]').first()).toBeVisible();
+  expect(await page.locator('.object-field a[data-testid="field-object"]').evaluateAll((links) => links.map((link) => ({
+    id: link.id, style: link.getAttribute('style'),
+  })))).toEqual(before);
+});
+
+test('resizing preserves field order and focus, and returning to a width restores its geometry', async ({ page }) => {
+  await page.goto(base);
+  const field = page.locator('.object-field[data-ready="true"]');
+  await expect(field).toBeVisible();
+  const first = field.locator('a[data-testid="field-object"]').first();
+  await first.focus();
+  const before = await field.locator('a[data-testid="field-object"]').evaluateAll((links) => links.map((link) => ({
+    id: link.id, style: link.getAttribute('style'),
+  })));
+  const viewport = page.viewportSize()!;
+  const initialColumns = await field.getAttribute('data-layout-columns');
+  // Cross a density boundary in both test projects, so this requires an actual layout update.
+  await page.setViewportSize({ width: viewport.width < 768 ? 1024 : 390, height: viewport.height });
+  await expect(field).not.toHaveAttribute('data-layout-columns', initialColumns!);
+  await expect(first).toBeFocused();
+  expect(await field.locator('a[data-testid="field-object"]').evaluateAll((links) => links.map((link) => link.id)))
+    .toEqual(before.map(({ id }) => id));
+  await page.setViewportSize(viewport);
+  await expect(field).toHaveAttribute('data-layout-columns', initialColumns!);
+  await expect(first).toBeFocused();
+  expect(await field.locator('a[data-testid="field-object"]').evaluateAll((links) => links.map((link) => ({
+    id: link.id, style: link.getAttribute('style'),
+  })))).toEqual(before);
+});
+
+test('the server-rendered object field keeps usable project links without JavaScript', async ({ browser, baseURL }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false, baseURL });
+  try {
+    const page = await context.newPage();
+    await page.goto(base);
+    const first = page.locator('.object-field a[data-testid="field-object"]').first();
+    await expect(first).toBeVisible();
+    const href = await first.getAttribute('href');
+    expect(href).toMatch(new RegExp(`^${base}found/`));
+    await first.click();
+    await expect(page).toHaveURL(new RegExp(`${href}$`));
+    await expect(page.locator('.project-head h1')).toBeVisible();
+  } finally {
+    await context.close();
+  }
 });
 
 test('a project links its cut-outs back to the field', async ({ page }) => {

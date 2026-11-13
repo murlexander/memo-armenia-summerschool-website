@@ -132,7 +132,7 @@ html[data-home="3"] .home-variant[data-variant="3"] { display: block; }
   .home-keywords { grid-column: 1 / -1; grid-row: 3; margin: .5rem 0 0; max-width: none; font-size: clamp(1.1rem, 1.75vw, 1.7rem); line-height: 1.5; }
 }
 
-/* Object field (React island, docs/collage-algorithm.md) */
+/* Object field (ObjectField.astro, docs/collage-algorithm.md) */
 .object-field { position: relative; width: 100%; margin-top: clamp(1rem, 3vw, 3rem); isolation: isolate; overflow-x: clip; }
 /* Transparent padding of a cut-out may extend past the edge; the visible part never does. */
 /* Hidden until measured, so the server layout never flashes; revealed anyway if scripts fail. */

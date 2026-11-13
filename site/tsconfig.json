@@ -3,8 +3,6 @@
   "include": [".astro/types.d.ts", "**/*"],
   "exclude": ["dist", "node_modules", "test-results", "playwright-report"],
   "compilerOptions": {
-    "jsx": "react-jsx",
-    "jsxImportSource": "react",
     "types": ["node"]
   }
 }

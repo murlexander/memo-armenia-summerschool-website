@@ -1,6 +1,5 @@
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
-import react from '@astrojs/react';
 import { contentDir, isPreview, previewDirs, siteDir } from './src/lib/build-env.ts';
 
 const preview = isPreview();
@@ -13,7 +12,7 @@ export default defineConfig({
   output: 'static',
   build: { format: 'directory' },
   ...(dirs ? { outDir: dirs.outDir, cacheDir: dirs.cacheDir } : {}),
-  integrations: [react(), mdx()],
+  integrations: [mdx()],
   devToolbar: { enabled: false },
   vite: {
     server: {

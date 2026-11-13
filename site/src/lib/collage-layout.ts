@@ -8,7 +8,7 @@ export type VisibleBounds = {
   height: number;
 };
 
-/** Serializable object descriptor, built at build time and passed to the island. */
+/** Serializable object descriptor, built at build time for the field. */
 export type FieldObject = {
   id: string;
   /** Base-aware project URL. */
@@ -32,6 +32,9 @@ export type FieldObject = {
 
 export type CollageItem = Pick<FieldObject, 'id' | 'visualWeight'>;
 
+/** What the browser needs to lay out the field again; the rest of an object is already in the markup. */
+export type FieldGeometry = Pick<FieldObject, 'id' | 'visualWeight' | 'intrinsicSize' | 'visibleAlphaBounds'>;
+
 export type CollagePlacement = {
   id: string;
   x: number;
@@ -54,12 +57,27 @@ export const MIN_TARGET = 48;
 
 const clamp = (minimum: number, value: number, maximum: number) => Math.min(maximum, Math.max(minimum, value));
 
-export function randomUnit(seed: number, key: string) {
-  let hash = (2166136261 ^ seed) >>> 0;
+function hashKey(state: number, key: string) {
+  let hash = state;
   for (let index = 0; index < key.length; index += 1) {
     hash ^= key.charCodeAt(index);
     hash = Math.imul(hash, 16777619);
   }
+  return hash;
+}
+
+export function randomUnit(seed: number, key: string) {
+  return finishUnit(hashKey((2166136261 ^ seed) >>> 0, key));
+}
+
+/** randomUnit(seed, `${prefix}${index}`), hashing the prefix once for the solver's many candidates. */
+export function seededSequence(seed: number, prefix: string) {
+  const state = hashKey((2166136261 ^ seed) >>> 0, prefix);
+  return (index: number) => finishUnit(hashKey(state, String(index)));
+}
+
+function finishUnit(state: number) {
+  let hash = state;
   hash ^= hash >>> 16;
   hash = Math.imul(hash, 2246822507);
   hash ^= hash >>> 13;
@@ -90,15 +108,32 @@ function lowestOpenY(x: number, width: number, height: number, startY: number, p
   return y;
 }
 
-function createsHorizontalBand(centerY: number, placements: Rect[], span = 72, capacity = 3) {
-  const centres = [centerY, ...placements.map((placement) => placement.y + placement.height / 2)].sort((a, b) => a - b);
-  for (let index = 0; index + capacity < centres.length; index += 1) {
-    if (centres[index + capacity] - centres[index] < span) return true;
-  }
-  return false;
+const BAND_SPAN = 72;
+const BAND_CAPACITY = 3;
+
+/**
+ * Whether adding a centre would put more than BAND_CAPACITY centres within BAND_SPAN of each other,
+ * forming a horizontal band. Built once per object from the placed centres; tested per candidate.
+ */
+function horizontalBandTest(placements: Rect[]) {
+  const centres = placements.map((placement) => placement.y + placement.height / 2).sort((a, b) => a - b);
+  const banded = (list: number[], from: number, to: number) => {
+    for (let index = Math.max(0, from); index <= to && index + BAND_CAPACITY < list.length; index += 1) {
+      if (list[index + BAND_CAPACITY] - list[index] < BAND_SPAN) return true;
+    }
+    return false;
+  };
+  if (banded(centres, 0, centres.length)) return () => true;
+  return (centerY: number) => {
+    // Only windows holding the new centre can be new bands.
+    let at = 0;
+    while (at < centres.length && centres[at] < centerY) at += 1;
+    const merged = [...centres.slice(Math.max(0, at - BAND_CAPACITY), at), centerY, ...centres.slice(at, at + BAND_CAPACITY)];
+    return banded(merged, 0, merged.length);
+  };
 }
 
-/** Layout constants shared by the solver, the island and the tests. */
+/** Layout constants shared by the solver, the field and the tests. */
 export function layoutMetrics(containerWidth: number) {
   const safeWidth = Math.max(280, containerWidth);
   const gutter = clamp(16, safeWidth * .042, 64);
@@ -125,11 +160,14 @@ export function createCollageLayout(objects: CollageItem[], containerWidth: numb
     : Math.max(780, objects.length * estimatedCardWidth * estimatedCardHeight / (usableWidth * .64));
   const topBandCapacity = densityColumns >= 6 ? 3 : 2;
 
-  const rejectsLeadingRow = (candidateY: number) => (
-    candidateY < 108 && placements.filter((placement) => placement.y < 108).length >= topBandCapacity
-  );
-
   ordered.forEach((object, placementIndex) => {
+    // Fixed while this object is placed: computed once rather than for each of its candidates.
+    const leadingRowFull = placements.filter((placement) => placement.y < 108).length >= topBandCapacity;
+    const rejectsLeadingRow = (candidateY: number) => candidateY < 108 && leadingRowFull;
+    const createsHorizontalBand = horizontalBandTest(placements);
+    const candidateXUnit = seededSequence(seed, `${object.id}:candidate-x:`);
+    const candidateYUnit = seededSequence(seed, `${object.id}:candidate-y:`);
+    const candidateScoreUnit = seededSequence(seed, `${object.id}:candidate-score:`);
     const weight = clamp(.94, object.visualWeight ?? 1, 1.06);
     const widthVariation = single
       ? .76 + randomUnit(seed, `${object.id}:width`) * .22
@@ -147,17 +185,17 @@ export function createCollageLayout(objects: CollageItem[], containerWidth: numb
       const envelopeGrowth = 1 + Math.floor(candidateIndex / 180) * .03;
       const candidateX = single
         ? gutter + randomUnit(seed, `${object.id}:mobile-x`) * Math.max(0, usableWidth - width)
-        : gutter + randomUnit(seed, `${object.id}:candidate-x:${candidateIndex}`) * Math.max(0, usableWidth - width);
+        : gutter + candidateXUnit(candidateIndex) * Math.max(0, usableWidth - width);
       const candidateY = single
         ? placementIndex * 288 + 8
-        : 10 + randomUnit(seed, `${object.id}:candidate-y:${candidateIndex}`)
+        : 10 + candidateYUnit(candidateIndex)
           * Math.max(0, targetCanvasHeight * envelopeGrowth - height - 20);
       const candidate = { x: candidateX, y: candidateY, width, height };
       if (placements.some((placement) => protectedOverlap(candidate, placement, protectedGap))) continue;
 
       const centerX = candidateX + width / 2;
       const centerY = candidateY + height / 2;
-      if (!single && createsHorizontalBand(centerY, placements)) continue;
+      if (!single && createsHorizontalBand(centerY)) continue;
       if (rejectsLeadingRow(candidateY)) continue;
 
       let alignmentPenalty = 0;
@@ -186,7 +224,7 @@ export function createCollageLayout(objects: CollageItem[], containerWidth: numb
         : 0;
       const crowdingPenalty = localCrowdingPenalty + Math.max(0, closeNeighbours - 2) * 54;
       const overflowPenalty = Math.max(0, candidateY + height - targetCanvasHeight) * 8;
-      const seededVariation = randomUnit(seed, `${object.id}:candidate-score:${candidateIndex}`) * 24;
+      const seededVariation = candidateScoreUnit(candidateIndex) * 24;
       const score = alignmentPenalty + spacingPenalty + crowdingPenalty + overflowPenalty + seededVariation;
       if (score < bestScore) {
         bestScore = score;
@@ -200,7 +238,7 @@ export function createCollageLayout(objects: CollageItem[], containerWidth: numb
         const candidateX = gutter + randomUnit(seed, `${object.id}:fallback-x:${fallbackIndex}`) * Math.max(0, usableWidth - width);
         const candidateY = lowestOpenY(candidateX, width, height, 10, placements, protectedGap);
         const centerY = candidateY + height / 2;
-        if (!single && createsHorizontalBand(centerY, placements)) continue;
+        if (!single && createsHorizontalBand(centerY)) continue;
         if (rejectsLeadingRow(candidateY)) continue;
         if (candidateY < bestY || !Number.isFinite(bestScore)) {
           bestX = candidateX;
@@ -305,5 +343,33 @@ export function fitVisibleBounds(
     // Offset from the box centre to the image centre that puts the visible centre in the middle.
     offsetX: (.5 - (bounds.x + bounds.width / 2)) * width,
     offsetY: (.5 - (bounds.y + bounds.height / 2)) * height,
+  };
+}
+
+/** The build lays the field out at this width and seed; the visitor's browser then lays it out again. */
+export const SERVER_WIDTH = 1024;
+export const SERVER_SEED = 20261112;
+/** A placeholder circle is a little smaller than the box an object would fill, so it reads as a marker. */
+export const CIRCLE_SCALE = .62;
+
+/** Phones with two footprints: no resting labels and no hover card (iOS would need a second tap), just the objects. */
+export function fieldMode(layout: CollageLayout, touch: boolean): CardMode {
+  if (layout.densityColumns === 1) return 'single';
+  if (touch) return layout.densityColumns <= 2 ? 'compact' : 'touch';
+  return 'fine';
+}
+
+/** Inline styles and attributes of one card, shared by the build's markup and the browser's layout. */
+export function cardLayout(object: FieldGeometry, placement: CollagePlacement, mode: CardMode, fieldWidth: number, index: number) {
+  const fit = fitVisibleBounds(object.intrinsicSize, object.visibleAlphaBounds, visualBox(placement, mode));
+  return {
+    style: `left:${placement.x}px;top:${placement.y}px;width:${placement.width}px;height:${placement.height}px;z-index:${placement.layer};`
+      + `--object-rotation:${placement.rotation.toFixed(2)}deg;--object-scale:${Number(placement.objectScale.toFixed(3))};--object-offset:${placement.objectOffset.toFixed(1)}px`,
+    storyAlign: storyAlignment(placement, fieldWidth),
+    circleStyle: `width:${(fit.width * CIRCLE_SCALE).toFixed(1)}px;height:${(fit.height * CIRCLE_SCALE).toFixed(1)}px`,
+    sizes: `${Math.ceil(fit.width)}px`,
+    loading: index < 8 ? 'eager' as const : 'lazy' as const,
+    imageStyle: `width:${fit.width.toFixed(1)}px;height:${fit.height.toFixed(1)}px;`
+      + `transform:translate(calc(-50% + ${fit.offsetX.toFixed(1)}px), calc(-50% + ${fit.offsetY.toFixed(1)}px))`,
   };
 }

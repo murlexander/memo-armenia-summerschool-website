@@ -1,0 +1,164 @@
+---
+// The LOST object field. The build renders it with a fixed seed and width, hidden until measured; the
+// script below lays it out for the visitor's screen with a fresh seed per visit (docs/collage-algorithm.md).
+// Without JavaScript the server layout is revealed after a moment (see .object-field in global.css).
+import { cardLayout, createCollageLayout, fieldMode, SERVER_SEED, SERVER_WIDTH, type FieldGeometry, type FieldObject } from '../lib/collage-layout.ts';
+
+interface Props {
+  objects: FieldObject[];
+  label: string;
+  describedBy?: string;
+  /** Prefix for each link's id, so project pages can link back to an object (#object-o009). */
+  anchorPrefix: string;
+  /** The word for «project» in the page's language, for the screen-reader label. */
+  projectWord: string;
+}
+
+const { objects, label, describedBy, anchorPrefix, projectWord } = Astro.props;
+const layout = createCollageLayout(objects, SERVER_WIDTH, SERVER_SEED);
+const objectById = new Map(objects.map((object) => [object.id, object]));
+const mode = fieldMode(layout, false);
+// What the script needs to lay the field out again; everything else is already in the markup.
+const geometry: FieldGeometry[] = objects.map(({ id, visualWeight, intrinsicSize, visibleAlphaBounds }) => ({ id, visualWeight, intrinsicSize, visibleAlphaBounds }));
+---
+<section
+  class="object-field"
+  aria-label={label}
+  aria-describedby={describedBy}
+  data-ready="false"
+  data-layout-columns={layout.densityColumns}
+  data-mode={mode}
+  data-anchor-prefix={anchorPrefix}
+  data-objects={JSON.stringify(geometry)}
+  style={`height:${layout.canvasHeight}px`}
+>
+  {layout.placements.map((placement, index) => {
+    const object = objectById.get(placement.id);
+    if (!object) return null;
+    const card = cardLayout(object, placement, mode, SERVER_WIDTH, index);
+    return (
+      <a id={`${anchorPrefix}${object.id}`} class="object-card" href={object.href} style={card.style} data-object={object.id} data-testid="field-object">
+        <span class="object-label">
+          <b>{object.label}</b>
+          <span class="visually-hidden">, {object.placeholder ? object.story : `${projectWord} «${object.projectTitle}»`}</span>
+          <span class="object-arrow" aria-hidden="true">↗</span>
+        </span>
+        {object.story && (
+          <span class="object-story" data-align={card.storyAlign} aria-hidden="true">
+            <b>{object.label}</b>
+            <span>{object.story}</span>
+          </span>
+        )}
+        <span class="object-figure">
+          {object.placeholder ? (
+            <span class="object-circle" data-kind={object.placeholder} style={card.circleStyle} />
+          ) : object.image && (
+            <img
+              src={object.image.src}
+              srcset={object.image.srcset}
+              sizes={card.sizes}
+              width={object.image.width}
+              height={object.image.height}
+              alt={object.alt}
+              loading={card.loading}
+              decoding="async"
+              draggable="false"
+              style={card.imageStyle}
+            />
+          )}
+        </span>
+      </a>
+    );
+  })}
+</section>
+
+<script>
+  import { cardLayout, createCollageLayout, fieldMode, type FieldGeometry } from '../lib/collage-layout.ts';
+
+  const SEED_KEY = 'lost-field-seed';
+
+  function storage(): Storage | null {
+    try {
+      return window.sessionStorage;
+    } catch {
+      return null;
+    }
+  }
+
+  /** A fresh arrangement per visit; returning with Back restores the previous one. */
+  function visitSeed(): number {
+    const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+    const stored = Number(storage()?.getItem(SEED_KEY));
+    if (navigation?.type === 'back_forward' && Number.isFinite(stored) && stored > 0) return stored;
+    const values = new Uint32Array(1);
+    window.crypto.getRandomValues(values);
+    const seed = values[0] || 1;
+    try {
+      storage()?.setItem(SEED_KEY, String(seed));
+    } catch {
+      // Storage may be unavailable; the field works without it.
+    }
+    return seed;
+  }
+
+  for (const field of document.querySelectorAll<HTMLElement>('.object-field[data-objects]')) {
+    const objects: FieldGeometry[] = JSON.parse(field.dataset.objects ?? '[]');
+    const objectById = new Map(objects.map((object) => [object.id, object]));
+    const anchorPrefix = field.dataset.anchorPrefix ?? '';
+    const cards = new Map([...field.querySelectorAll<HTMLAnchorElement>('a[data-object]')].map((card) => [card.dataset.object!, card]));
+    // Must match the CSS that shows resting labels (see .object-label in global.css).
+    const touchQuery = window.matchMedia('(hover: none), (pointer: coarse)');
+    const seed = visitSeed();
+    let width = -1;
+    let touch = touchQuery.matches;
+
+    const render = () => {
+      const layout = createCollageLayout(objects, width, seed);
+      const mode = fieldMode(layout, touch);
+      field.dataset.layoutColumns = String(layout.densityColumns);
+      field.dataset.mode = mode;
+      field.style.height = `${layout.canvasHeight}px`;
+      layout.placements.forEach((placement, index) => {
+        const element = cards.get(placement.id);
+        const object = objectById.get(placement.id);
+        if (!element || !object) return;
+        const card = cardLayout(object, placement, mode, width, index);
+        element.setAttribute('style', card.style);
+        element.querySelector<HTMLElement>('.object-story')?.setAttribute('data-align', card.storyAlign);
+        element.querySelector<HTMLElement>('.object-circle')?.setAttribute('style', card.circleStyle);
+        const image = element.querySelector('img');
+        if (image) {
+          image.sizes = card.sizes;
+          image.loading = card.loading;
+          image.setAttribute('style', card.imageStyle);
+        }
+        // Placement order is the reading and tab order; move a card only when it is out of place,
+        // so a resize never takes focus away.
+        if (field.children[index] !== element) field.insertBefore(element, field.children[index] ?? null);
+      });
+    };
+
+    const measure = () => {
+      const measured = Math.round(field.getBoundingClientRect().width);
+      if (measured === width) return;
+      width = measured;
+      render();
+    };
+    measure();
+    field.dataset.ready = 'true';
+    new ResizeObserver(measure).observe(field);
+    touchQuery.addEventListener('change', () => {
+      touch = touchQuery.matches;
+      render();
+    });
+
+    // Linked from a project page (#object-…): bring that object into view once it is placed.
+    const id = decodeURIComponent(window.location.hash.slice(1));
+    const target = id.startsWith(anchorPrefix) ? document.getElementById(id) : null;
+    if (target) {
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      target.scrollIntoView({ block: 'center', behavior: reduced ? 'auto' : 'smooth' });
+      target.focus({ preventScroll: true });
+    }
+  }
+</script>
