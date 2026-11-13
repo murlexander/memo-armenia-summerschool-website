@@ -69,3 +69,36 @@ const homeScript = homeVariant
     </nav>
   </body>
 </html>
+
+<script>
+  const switcher = document.querySelector<HTMLElement>('.lang-switch');
+  if (switcher) {
+    let lastY = window.scrollY;
+    let downwardTravel = 0;
+    let pending = false;
+
+    const update = () => {
+      pending = false;
+      // Clamp elastic overscroll so bouncing at either edge doesn't change direction.
+      const end = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+      const y = Math.max(0, Math.min(window.scrollY, end));
+      const delta = y - lastY;
+      if (y <= 80 || end - y <= 80 || delta < 0) {
+        downwardTravel = 0;
+        switcher.removeAttribute('data-hidden');
+      } else {
+        downwardTravel += delta;
+        if (downwardTravel >= 16) switcher.setAttribute('data-hidden', '');
+      }
+      lastY = y;
+    };
+
+    const schedule = () => {
+      if (pending) return;
+      pending = true;
+      requestAnimationFrame(update);
+    };
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule);
+  }
+</script>
