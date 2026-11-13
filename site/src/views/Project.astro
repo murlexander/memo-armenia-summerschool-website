@@ -6,7 +6,7 @@ import Pending from '../components/Pending.astro';
 import PlaceMap from '../components/PlaceMap.astro';
 import Prose from '../components/Prose.astro';
 import YouTube from '../components/YouTube.astro';
-import { href, localizeObject, localizeProject, objectAnchor, preview, type ObjectEntry, type Project } from '../lib/content.ts';
+import { href, localizeObject, localizeProject, objectAnchor, preview, projectObjectStatus, type ObjectEntry, type Project } from '../lib/content.ts';
 import { issueLabels, objectIssues, projectIssues } from '../lib/issues.ts';
 import { uiFor, type Lang } from '../lib/ui.ts';
 
@@ -26,7 +26,9 @@ const title = text.title ?? ui.pendingTitle;
 // Open questions and conflict notes are editorial notes on the Russian content, so only the Russian pages show them.
 const editorial = preview && lang === 'ru';
 const issues = editorial ? projectIssues(data, { owned: owned.length, claimed: claimed.length }) : [];
-const objects = [
+// One project, one object: its object is shown only when settled; otherwise the same circle as on LOST and FOUND.
+const status = projectObjectStatus(project, owned, claimed);
+const objects = status !== 'certain' ? [] : [
   ...owned.map(({ object, claimedBy }) => ({ object, note: claimedBy.length > 0 ? `${ui.alsoClaimedBy} «${claimedBy.map((other) => other.data.title).join('», «')}»` : '' })),
   ...claimed.map(({ object, project: owner }) => ({ object, note: `${ui.ownedBy} «${owner.data.title}»` })),
 ].map((entry) => ({
@@ -35,7 +37,7 @@ const objects = [
   marked: editorial && (entry.note !== '' || objectIssues(entry.object.data).length > 0),
   text: localizeObject(entry.object, lang),
 }));
-const team = text.team.every((name) => name === null) && text.team.length > 0 ? null : text.team.join(', ');
+const team = text.team.some((name) => name === null) ? null : text.team.join(', ');
 ---
 <Base title={title} section="found" sectionIndex={false} description={`${title}. ${ui.team}: ${team ?? ui.pendingName}`}>
   <article class="page-shell project">
@@ -79,7 +81,14 @@ const team = text.team.every((name) => name === null) && text.team.length > 0 ? 
                 {note && <p class="object-note">{note}</p>}
               </li>
             ))}
-            {objects.length === 0 && preview && <li class="project-object-placeholder placeholder-box">{ui.noObject}</li>}
+            {status !== 'certain' && preview && (
+              <li class="project-object-circle">
+                <a href={`${href('', lang)}#${objectAnchor(data.id)}`} aria-label={`${status === 'unknown' ? ui.noObject : ui.objectUncertain} — ${ui.findOnField}`}>
+                  <span class="project-circle" data-kind={status} aria-hidden="true"></span>
+                </a>
+                <span>{status === 'unknown' ? ui.noObject : ui.objectUncertain}</span>
+              </li>
+            )}
           </ul>
         </section>
 

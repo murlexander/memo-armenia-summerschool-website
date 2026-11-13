@@ -1,6 +1,7 @@
 // Content queries with the publication gate applied. Pages read content only through here.
 import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
 import { isPreview } from './build-env.ts';
+import { objectStatus, type ObjectStatus } from './issues.ts';
 import { defaultLang, langs, type Lang } from './ui.ts';
 
 export type Project = CollectionEntry<'projects'>;
@@ -50,6 +51,11 @@ export function objectsOfProject(entries: ObjectEntry[], projectId: string) {
     owned: entries.filter(({ object }) => object.data.projectId === projectId),
     claimed: entries.filter(({ claimedBy }) => claimedBy.some((project) => project.data.id === projectId)),
   };
+}
+
+/** Whether a project's one object is settled (see objectStatus in issues.ts). */
+export function projectObjectStatus(project: Project, owned: ObjectEntry[], claimed: ObjectEntry[]): ObjectStatus {
+  return objectStatus(project.data.objectStatus, owned.map(({ object }) => object.data), claimed.length);
 }
 
 const baseUrl = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
@@ -112,7 +118,21 @@ export async function getLocalSite(lang: Lang) {
 
 export type LocalSite = Awaited<ReturnType<typeof getLocalSite>>;
 
+/** A project's texts in one language. Missing translations and fields the index marks uncertain are null. */
 export async function localizeProject(project: Project, lang: Lang) {
+  const text = await translateProject(project, lang);
+  const uncertain = new Set(project.data.uncertain);
+  return {
+    ...text,
+    title: uncertain.has('title') ? null : text.title,
+    team: uncertain.has('team') ? text.team.map(() => null) : text.team,
+    materials: uncertain.has('materials') ? null : text.materials,
+    history: uncertain.has('history') ? null : text.history,
+    fromAuthor: uncertain.has('fromAuthor') ? null : text.fromAuthor,
+  };
+}
+
+async function translateProject(project: Project, lang: Lang) {
   const { data } = project;
   if (lang === defaultLang) {
     return {

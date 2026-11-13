@@ -19,8 +19,10 @@ export type FieldObject = {
   story?: string;
   projectTitle: string;
   alt: string;
-  /** Optimized web image (webp), with a smaller candidate in srcset. */
-  image: { src: string; srcset: string; width: number; height: number };
+  /** Optimized web image (webp), with a smaller candidate in srcset. Absent for a placeholder. */
+  image?: { src: string; srcset: string; width: number; height: number };
+  /** Team preview: a circle instead of an object whose project is uncertain (grey) or has none yet (red). */
+  placeholder?: 'uncertain' | 'unknown';
   /** Pixel size of the original cut-out. */
   intrinsicSize: { width: number; height: number };
   /** Normalized bounding box of the visible (non-transparent) pixels. */

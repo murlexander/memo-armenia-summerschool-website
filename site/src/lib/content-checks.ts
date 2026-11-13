@@ -164,6 +164,10 @@ export async function checkContentDir(root: string, options: { preview: boolean 
     const own = objects.filter((object) => object.projectId === project.id);
     const claimed = objects.filter((object) => object.alsoClaimedBy.includes(project.id));
     if (own.length + claimed.length === 0) gap(project.published, `${rel(project.file)}: project has no objects`);
+    // The index's verdict and the objects must agree: a settled project owns exactly one unshared object.
+    if (project.objectStatus === 'certain' && (own.length !== 1 || claimed.length > 0 || own[0].alsoClaimedBy.length > 0)) {
+      gap(project.published, `${rel(project.file)}: objectStatus is certain, but it owns ${own.length} and shares ${claimed.length} objects`);
+    }
     if (project.published) {
       for (const object of own.filter((item) => !item.published)) {
         errors.push(`${rel(project.file)}: published project references unpublished object ${object.id}`);

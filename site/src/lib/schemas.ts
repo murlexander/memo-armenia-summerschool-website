@@ -1,7 +1,7 @@
 // Content schemas, shared by content.config.ts (Astro) and scripts/check-content.ts (Node).
 // The image schema is injected: Astro's image() in the site, a plain path string in the checks.
 import { z } from 'astro/zod';
-import { objectIssueCodes, projectIssueCodes } from './issues.ts';
+import { objectIssueCodes, objectStatuses, projectIssueCodes, uncertainFields } from './issues.ts';
 
 const nonEmpty = z.string().trim().min(1);
 const asciiId = (prefix: string) => z.string().regex(new RegExp(`^${prefix}[0-9]+$`), `must look like ${prefix}001`);
@@ -53,11 +53,21 @@ export function projectSchema<I extends z.ZodType>(image: () => I) {
       media: z.array(z.discriminatedUnion('type', [imageMedia, youtubeMedia])).default([]),
       /** Open questions the team preview marks; see issues.ts. */
       issues: z.array(z.enum(projectIssueCodes)).default([]),
+      /** From the index: whether the project's one object is settled. Derived from the objects when absent. */
+      objectStatus: z.enum(objectStatuses).optional(),
+      /** From the index: fields whose text is missing or unconfirmed; the preview shows placeholders instead. */
+      uncertain: z.array(z.enum(uncertainFields)).default([]),
     })
     .superRefine((project, context) => {
       if (!project.published) return;
       if (project.issues.length > 0) {
         context.addIssue({ code: 'custom', path: ['issues'], message: `published project ${project.id} still has open issues` });
+      }
+      if (project.objectStatus && project.objectStatus !== 'certain') {
+        context.addIssue({ code: 'custom', path: ['objectStatus'], message: `published project ${project.id} has an ${project.objectStatus} object` });
+      }
+      if (project.uncertain.length > 0) {
+        context.addIssue({ code: 'custom', path: ['uncertain'], message: `published project ${project.id} still has uncertain ${project.uncertain.join(', ')}` });
       }
       for (const field of missingProjectFields(project)) {
         context.addIssue({ code: 'custom', path: [field], message: `published project ${project.id} needs ${field}` });

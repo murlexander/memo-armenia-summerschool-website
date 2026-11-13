@@ -24,6 +24,8 @@ type CardStyle = CSSProperties & {
 };
 
 const SERVER_SEED = 20261112;
+/** A placeholder circle is a little smaller than the box an object would fill, so it reads as a marker. */
+const CIRCLE_SCALE = .62;
 const SERVER_WIDTH = 1024;
 const SEED_KEY = 'lost-field-seed';
 
@@ -130,7 +132,7 @@ export default function ObjectField({ objects, label, describedBy, anchorPrefix,
           >
             <span className="object-label">
               <b>{object.label}</b>
-              <span className="visually-hidden">, {projectWord} «{object.projectTitle}»</span>
+              <span className="visually-hidden">, {object.placeholder ? object.story : `${projectWord} «${object.projectTitle}»`}</span>
               <span className="object-arrow" aria-hidden="true">↗</span>
             </span>
             {object.story && (
@@ -140,6 +142,13 @@ export default function ObjectField({ objects, label, describedBy, anchorPrefix,
               </span>
             )}
             <span className="object-figure">
+              {object.placeholder ? (
+                <span
+                  className="object-circle"
+                  data-kind={object.placeholder}
+                  style={{ width: `${(fit.width * CIRCLE_SCALE).toFixed(1)}px`, height: `${(fit.height * CIRCLE_SCALE).toFixed(1)}px` }}
+                />
+              ) : object.image && (
               <img
                 src={object.image.src}
                 srcSet={object.image.srcset}
@@ -156,6 +165,7 @@ export default function ObjectField({ objects, label, describedBy, anchorPrefix,
                   transform: `translate(calc(-50% + ${fit.offsetX.toFixed(1)}px), calc(-50% + ${fit.offsetY.toFixed(1)}px))`,
                 }}
               />
+              )}
             </span>
           </a>
         );

@@ -40,6 +40,7 @@ const ru = {
   partners: 'Партнёры',
   // Team preview placeholders
   noObject: 'Предмет не выбран',
+  objectUncertain: 'Предмет под вопросом',
   noText: 'Текста пока нет',
   noPhotos: 'Фото пока нет',
   notSpecified: 'не указано',
@@ -83,6 +84,7 @@ const en: UiStrings = {
   instagram: 'Instagram',
   partners: 'Partners',
   noObject: 'No object chosen',
+  objectUncertain: 'Object not settled yet',
   noText: 'No text yet',
   noPhotos: 'No photos yet',
   notSpecified: 'not specified',
@@ -123,6 +125,7 @@ const hy: UiStrings = {
   instagram: 'Instagram',
   partners: 'Գործընկերներ',
   noObject: 'Առարկան ընտրված չէ',
+  objectUncertain: 'Առարկան դեռ ճշտվում է',
   noText: 'Տեքստը դեռ չկա',
   noPhotos: 'Լուսանկարները դեռ չկան',
   notSpecified: 'նշված չէ',
