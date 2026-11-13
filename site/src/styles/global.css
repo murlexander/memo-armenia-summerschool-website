@@ -405,6 +405,7 @@ html.js .object-field[data-ready="false"] { opacity: 0; animation: field-reveal 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
   .background-grain::before { animation: none !important; }
+  .lang-switch { transition: none !important; }
   html.js .object-field[data-ready="false"] { animation-delay: 3s !important; }
   .object-card:focus-visible, .object-field[data-mode="fine"] .object-card:hover { transform: none; }
 }
@@ -418,7 +419,14 @@ html.js .object-field[data-ready="false"] { opacity: 0; animation: field-reveal 
   background: rgb(238 231 219 / 90%); backdrop-filter: blur(8px);
   box-shadow: 0 4px 16px rgb(47 35 23 / 14%);
   font-size: .78rem; font-weight: 700; letter-spacing: .06em;
+  transition: transform 180ms ease, opacity 180ms ease;
 }
+/* Keep links in the tab order; focus reveals them immediately, even while scrolled down. */
+.lang-switch[data-hidden]:not(:focus-within) {
+  transform: translateY(calc(100% + max(12px, env(safe-area-inset-bottom)) + 16px));
+  opacity: 0; pointer-events: none;
+}
+.lang-switch:focus-within { transition: none; }
 .lang-switch a { display: inline-flex; align-items: center; justify-content: center; min-width: 48px; min-height: 48px; padding: 0 .55rem; border-radius: 999px; color: var(--muted); text-decoration: none; }
 .lang-switch a:hover:not([aria-current]) { color: var(--ink); }
 .lang-switch a[aria-current] { background: var(--ink); color: var(--paper); }
