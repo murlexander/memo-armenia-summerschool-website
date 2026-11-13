@@ -266,6 +266,23 @@ export function visualBox(card: { width: number; height: number }, mode: CardMod
   return { width: Math.min(card.width * 1.55, 272), height: card.height * 1.18 };
 }
 
+/** Width range of the hover story card; must match `.object-story` in global.css (17rem–22rem). */
+const STORY_MIN_WIDTH = 272;
+const STORY_MAX_WIDTH = 352;
+const STORY_EDGE = 8;
+
+/**
+ * Which edge of its object the hover story card hangs from. Centred by default; anchored to the
+ * object's left or right edge when a centred card would cross the field's edge, which clips it.
+ */
+export function storyAlignment(card: { x: number; width: number }, fieldWidth: number): 'start' | 'center' | 'end' {
+  const story = Math.min(STORY_MAX_WIDTH, Math.max(card.width, STORY_MIN_WIDTH));
+  const centre = card.x + card.width / 2;
+  if (centre - story / 2 < STORY_EDGE) return 'start';
+  if (centre + story / 2 > fieldWidth - STORY_EDGE) return 'end';
+  return 'center';
+}
+
 /**
  * Size and offset of the image so that its visible pixels fill a box and are centred in it.
  * Transparent padding never counts towards the object's apparent size.

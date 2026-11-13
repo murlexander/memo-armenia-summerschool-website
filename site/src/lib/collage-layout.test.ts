@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCollageLayout, fitVisibleBounds, layoutMetrics, MIN_TARGET, type CollageItem } from './collage-layout.ts';
+import { createCollageLayout, fitVisibleBounds, layoutMetrics, MIN_TARGET, storyAlignment, type CollageItem } from './collage-layout.ts';
 
 const makeObjects = (count: number): CollageItem[] => Array.from({ length: count }, (_, index) => ({
   id: `o${String(index + 1).padStart(4, '0')}`,
@@ -94,4 +94,11 @@ test('fits the visible pixels, not the transparent padding, into the box', () =>
   assert.equal(offCentre.width, 200);
   assert.equal(offCentre.offsetX, 50);
   assert.equal(offCentre.offsetY, 50);
+});
+
+test('keeps the hover story card inside the field', () => {
+  assert.equal(storyAlignment({ x: 600, width: 120 }, 1400), 'center');
+  // A centred 272px card under a narrow object at the left edge would start left of the field.
+  assert.equal(storyAlignment({ x: 10, width: 120 }, 1400), 'start');
+  assert.equal(storyAlignment({ x: 1270, width: 120 }, 1400), 'end');
 });
