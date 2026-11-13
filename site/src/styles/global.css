@@ -283,10 +283,10 @@ html.js .object-field[data-ready="false"] { opacity: 0; animation: field-reveal 
 .project-where { container-type: inline-size; display: flex; flex-direction: column; }
 .project-where .place-map-where { flex: 1 1 auto; display: flex; flex-direction: column; margin-top: 0; }
 .project-where .place-map-small { flex: 1 1 auto; display: flex; flex-direction: column; max-width: none; }
-.project-where .place-map-small .place-map-svg {
-  flex: 1 1 0px; height: auto; aspect-ratio: auto;
-  min-height: calc(100cqw * var(--map-frame)); max-height: calc(100cqw * var(--map-tallest));
+.project-where .place-map-open {
+  flex: 1 1 0px; display: flex; flex-direction: column; min-height: calc(100cqw * var(--map-frame)); max-height: calc(100cqw * var(--map-tallest));
 }
+.project-where .place-map-open .place-map-svg { flex: 1 1 0px; height: auto; aspect-ratio: auto; }
 .project-where-placeholder { flex: 1 1 0px; margin: 0; min-height: calc(100cqw * 420 / 640); max-height: calc(100cqw * 1.4); }
 .project-texts .project-text:first-child { margin-top: 0; }
 .project-text { max-width: 68ch; margin-top: clamp(2.5rem, 6vw, 4.5rem); }
@@ -303,7 +303,7 @@ html.js .object-field[data-ready="false"] { opacity: 0; animation: field-reveal 
 @media (min-width: 900px) {
   .project-row { grid-template-columns: minmax(0, min(40rem, 55%)) minmax(0, 1fr); column-gap: clamp(2rem, 6vw, 7rem); align-items: start; }
   .project-where { align-self: stretch; }
-  .project-where .place-map-small .place-map-svg { min-height: calc(100cqw * var(--map-shortest)); }
+  .project-where .place-map-open { min-height: calc(100cqw * var(--map-shortest)); }
   .project-where-placeholder { min-height: calc(100cqw * .5); }
 }
 
@@ -512,8 +512,11 @@ a.pm-item:hover .pm-name, .place-map-list > li[data-active] .pm-name { text-deco
 .pm-other { fill: var(--paper-light); stroke: var(--muted); stroke-width: 1; }
 .pm-halo { fill: rgb(166 94 69 / 18%); }
 .pm-here { fill: var(--clay); stroke: var(--paper-light); stroke-width: 2; }
-.place-map-small figcaption { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0 1rem; }
-.place-map-small figcaption > a { display: inline-flex; align-items: center; min-height: 48px; }
+/* The drawing itself leads to the full map. */
+.place-map-open { display: block; border-radius: .8rem; }
+.place-map-open .place-map-svg { display: block; transition: box-shadow 190ms ease; }
+.place-map-open:hover .place-map-svg { box-shadow: 0 0 0 2px var(--clay); }
+.place-map-small figcaption { display: flex; justify-content: flex-end; margin-top: .4rem; }
 .place-map-credit-inline { color: var(--muted); font-size: .7rem; }
 
 @media (min-width: 640px) {

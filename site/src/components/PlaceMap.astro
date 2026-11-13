@@ -2,7 +2,8 @@
 // Map of places, drawn as a static SVG from map.yaml and map-base.json (no tiles, no third-party requests).
 // mode="full": the whole village with numbered markers and a list of places (the list is what keyboard and
 // screen-reader users navigate; the drawing repeats it for the eye and the mouse).
-// mode="project": a small «where is it» map around one project's places; renders nothing if it has none.
+// mode="project": a small «where is it» map around one project's places, leading to the full map; renders nothing
+// if it has none.
 import { getEntry } from 'astro:content';
 import Pending from './Pending.astro';
 import { getProjects, href, localizeProject, preview, projectHref } from '../lib/content.ts';
@@ -177,6 +178,7 @@ const r1 = (value: number) => Math.round(value * 10) / 10;
   <section class="place-map-where" aria-labelledby="place-map-where-title">
   <h2 id="place-map-where-title">{strings.where}</h2>
   <figure class="place-map-small" style={`--map-frame: ${small.frameRatio.toFixed(4)}; --map-shortest: ${small.shortestRatio.toFixed(4)}; --map-tallest: ${(small.height / small.width).toFixed(4)}`}>
+    <a class="place-map-open" href={`${href('pokr-ayrum/', lang)}#map`} aria-label={strings.allPlaces}>
     <svg class="place-map-svg" viewBox={`0 0 ${small.width} ${small.height}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
       <g class="pm-base">
         {small.base.map((feature) => <path class={`pm-${feature.kind}`} d={feature.d} />)}
@@ -189,8 +191,8 @@ const r1 = (value: number) => Math.round(value * 10) / 10;
         </>
       ))}
     </svg>
+    </a>
     <figcaption>
-      <a href={`${href('pokr-ayrum/', lang)}#map`}>{strings.allPlaces}</a>
       <span class="place-map-credit-inline"><a href="https://www.openstreetmap.org/copyright">{map!.base.attribution}</a></span>
     </figcaption>
   </figure>
