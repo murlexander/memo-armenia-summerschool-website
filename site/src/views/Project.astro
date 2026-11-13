@@ -1,13 +1,17 @@
 ---
-import { Image } from 'astro:assets';
+// A project page in three blocks: who made it, from what and where (with the place on the right);
+// its story with the main photo or video; the process photos in one row.
+import type { ImageMetadata } from 'astro';
+import { getImage, Image } from 'astro:assets';
+import { getEntry } from 'astro:content';
 import Base from '../layouts/Base.astro';
-import Figure from '../components/Figure.astro';
+import Lightbox from '../components/Lightbox.astro';
 import Pending from '../components/Pending.astro';
 import PlaceMap from '../components/PlaceMap.astro';
 import Prose from '../components/Prose.astro';
 import YouTube from '../components/YouTube.astro';
 import { href, localizeObject, localizeProject, objectAnchor, preview, projectObjectStatus, type ObjectEntry, type Project } from '../lib/content.ts';
-import { issueLabels, objectIssues, projectIssues } from '../lib/issues.ts';
+import { mapStrings } from '../lib/map.ts';
 import { uiFor, type Lang } from '../lib/ui.ts';
 
 interface Props {
@@ -23,26 +27,45 @@ const ui = uiFor(lang);
 const { data } = project;
 const text = await localizeProject(project, lang);
 const title = text.title ?? ui.pendingTitle;
-// Open questions and conflict notes are editorial notes on the Russian content, so only the Russian pages show them.
-const editorial = preview && lang === 'ru';
-const issues = editorial ? projectIssues(data, { owned: owned.length, claimed: claimed.length }) : [];
+const team = text.team.some((name) => name === null) ? null : text.team.join(', ');
+
 // One project, one object: its object is shown only when settled; otherwise the same circle as on LOST and FOUND.
 const status = projectObjectStatus(project, owned, claimed);
-const objects = status !== 'certain' ? [] : [
-  ...owned.map(({ object, claimedBy }) => ({ object, note: claimedBy.length > 0 ? `${ui.alsoClaimedBy} «${claimedBy.map((other) => other.data.title).join('», «')}»` : '' })),
-  ...claimed.map(({ object, project: owner }) => ({ object, note: `${ui.ownedBy} «${owner.data.title}»` })),
-].map((entry) => ({
-  ...entry,
-  note: editorial ? entry.note : '',
-  marked: editorial && (entry.note !== '' || objectIssues(entry.object.data).length > 0),
-  text: localizeObject(entry.object, lang),
+const objects = status === 'certain' ? owned.map(({ object }) => ({ object, text: localizeObject(object, lang) })) : [];
+
+// Where it is: the small map, or (preview) a placeholder while no place on the map names this project.
+const map = (await getEntry('map', 'map'))?.data;
+const hasPlace = Boolean(map && (preview || map.published) && map.places.some((place) => place.projectIds.includes(data.id)));
+
+// Photos open full screen from a large copy; the page shows smaller ones.
+const large = async (src: ImageMetadata) => (await getImage({ src, width: Math.min(2400, src.width), format: 'webp' })).src;
+const photos = await Promise.all(data.media.map(async (item, index) => {
+  if (item.type !== 'image') return null;
+  const local = text.media[index];
+  return {
+    src: item.src,
+    large: await large(item.src),
+    alt: local.alt ?? ui.pendingAlt,
+    caption: local.caption,
+    credit: item.credit,
+    night: item.night ? { src: item.night.src, large: await large(item.night.src), alt: local.nightAlt ?? ui.pendingAlt } : undefined,
+  };
 }));
-const team = text.team.some((name) => name === null) ? null : text.team.join(', ');
+const videoIndex = data.media.findIndex((item) => item.type === 'youtube');
+const video = videoIndex >= 0 ? data.media[videoIndex] : undefined;
+const images = photos.filter((photo) => photo !== null);
+// The film studio's main piece is its video; everyone else's is the first photo.
+const film = data.studio === 'Кино';
+const main = video?.type === 'youtube' ? undefined : film ? undefined : images[0];
+const process = main ? images.slice(1) : images;
+const processColumns = Math.min(6, Math.max(3, process.length));
+const day = `daynight-${data.id}`;
 ---
 <Base title={title} section="found" sectionIndex={false} description={`${title}. ${ui.team}: ${team ?? ui.pendingName}`}>
   <article class="page-shell project">
     <p class="back-row"><a class="back-link" href={href('found/', lang)}>← {ui.allProjects}</a></p>
-    <div class="project-layout">
+
+    <div class="project-row project-intro">
       <div class="project-main">
         <header class="project-head">
           {text.studio !== undefined && <p class="eyebrow">{ui.studio}: {text.studio ?? <Pending text={ui.pendingName} />}</p>}
@@ -58,27 +81,19 @@ const team = text.team.some((name) => name === null) ? null : text.team.join(', 
             </div>
           </dl>
         </header>
-        {issues.length > 0 && (
-          <aside class="issue-panel" aria-labelledby="open-issues">
-            <h2 id="open-issues">{ui.openIssues}</h2>
-            <ul class="issue-list">{issues.map((code) => <li>{issueLabels[code]}</li>)}</ul>
-          </aside>
-        )}
 
         <section class="project-objects" aria-labelledby="project-objects">
           <h2 id="project-objects" class="visually-hidden">{ui.projectObjects}</h2>
           <ul>
-            {objects.map(({ object, note, marked, text: objectText }) => (
-              <li data-issues={marked ? 'true' : undefined}>
+            {objects.map(({ object, text: objectText }) => (
+              <li>
                 <a href={`${href('', lang)}#${objectAnchor(object.data.id)}`}>
-                  {marked && <span class="issue-badge" aria-hidden="true">!</span>}
                   <Image src={object.data.image} alt={objectText.alt ?? ui.pendingAlt} widths={[320, 640]} sizes="320px" format="webp" />
                   <span>{objectText.label ?? <Pending text={ui.pendingTitle} />} <span class="visually-hidden">— {ui.findOnField}</span><span aria-hidden="true">↗</span></span>
                 </a>
                 {objectText.story !== undefined && (
                   <p class="object-story-text">{objectText.story ?? <Pending text={ui.pendingText} />}</p>
                 )}
-                {note && <p class="object-note">{note}</p>}
               </li>
             ))}
             {status !== 'certain' && preview && (
@@ -91,28 +106,82 @@ const team = text.team.some((name) => name === null) ? null : text.team.join(', 
             )}
           </ul>
         </section>
+      </div>
 
+      <aside class="project-where">
+        {hasPlace ? <PlaceMap lang={lang} mode="project" projectId={data.id} /> : preview && (
+          <section class="place-map-where" aria-labelledby="place-map-where-title">
+            <h2 id="place-map-where-title">{mapStrings[lang].where}</h2>
+            <p class="placeholder-box project-where-placeholder">{ui.noPlace}</p>
+          </section>
+        )}
+      </aside>
+    </div>
+
+    <div class="project-row project-story">
+      <div class="project-texts">
         {[['history', ui.history, text.history], ['from-author', ui.fromAuthor, text.fromAuthor]].map(([id, heading, body]) => (body !== '' || preview) && (
           <section class="project-text" aria-labelledby={id}>
             <h2 id={id}>{heading}</h2>
             {body === null ? <Pending text={ui.pendingText} block /> : body ? <Prose source={body} /> : <p class="placeholder-text">{ui.noText}</p>}
           </section>
         ))}
-        <PlaceMap lang={lang} mode="project" projectId={data.id} />
       </div>
-      {data.media.length === 0 && preview && (
-        <section class="project-media" aria-label={ui.media}>
-          <p class="placeholder-box project-media-placeholder">{ui.noPhotos}</p>
-        </section>
-      )}
-      {data.media.length > 0 && (
-        <section class="project-media" aria-labelledby="media">
-          <h2 id="media">{ui.media}</h2>
-          {data.media.map((item, index) => item.type === 'image'
-            ? <Figure src={item.src} alt={text.media[index].alt} caption={text.media[index].caption} credit={item.credit} />
-            : <YouTube id={item.id} title={text.media[index].alt ?? ui.pendingTitle} poster={item.poster} />)}
-        </section>
-      )}
+
+      <div class="project-main-media" aria-label={ui.media}>
+        {video?.type === 'youtube' ? (
+          <YouTube id={video.id} title={text.media[videoIndex].alt ?? ui.pendingTitle} poster={video.poster} />
+        ) : film ? (
+          preview && <p class="placeholder-box main-media-placeholder video-placeholder">{ui.noVideo}</p>
+        ) : main ? (
+          <figure class="media-figure main-photo">
+            {main.night ? (
+              <div class="daynight">
+                <input type="radio" class="daynight-day visually-hidden" name={day} id={`${day}-day`} checked />
+                <label for={`${day}-day`}>{ui.day}</label>
+                <input type="radio" class="daynight-night visually-hidden" name={day} id={`${day}-night`} />
+                <label for={`${day}-night`}>{ui.night}</label>
+                <div class="daynight-frames">
+                  <a class="zoomable daynight-frame daynight-frame-day" href={main.large} aria-label={ui.openPhoto}>
+                    <Image src={main.src} alt={main.alt} widths={[480, 960, 1440]} sizes="(min-width: 900px) 45vw, calc(100vw - 2rem)" format="webp" loading="eager" />
+                  </a>
+                  <a class="zoomable daynight-frame daynight-frame-night" href={main.night.large} aria-label={ui.openPhoto}>
+                    <Image src={main.night.src} alt={main.night.alt} widths={[480, 960, 1440]} sizes="(min-width: 900px) 45vw, calc(100vw - 2rem)" format="webp" />
+                  </a>
+                </div>
+              </div>
+            ) : (
+              <a class="zoomable" href={main.large} aria-label={ui.openPhoto}>
+                <Image src={main.src} alt={main.alt} widths={[480, 960, 1440]} sizes="(min-width: 900px) 45vw, calc(100vw - 2rem)" format="webp" loading="eager" />
+              </a>
+            )}
+            {(main.caption || main.credit) && (
+              <figcaption>
+                {main.caption && <span>{main.caption}</span>}
+                {main.credit && <span class="credit">{ui.photoCredit}: {main.credit}</span>}
+              </figcaption>
+            )}
+          </figure>
+        ) : (
+          preview && <p class="placeholder-box main-media-placeholder">{ui.noPhotos}</p>
+        )}
+      </div>
     </div>
+
+    {process.length > 0 && (
+      <section class="project-process" aria-labelledby="process">
+        <h2 id="process" class="visually-hidden">{ui.processPhotos}</h2>
+        <ul class="process-row" style={`--columns: ${processColumns}`}>
+          {process.map((photo) => (
+            <li>
+              <a class="zoomable" href={photo.large} aria-label={ui.openPhoto}>
+                <Image src={photo.src} alt={photo.alt} widths={[320, 640]} sizes="(min-width: 900px) 16vw, 45vw" format="webp" />
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
   </article>
+  <Lightbox />
 </Base>

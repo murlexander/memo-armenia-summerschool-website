@@ -31,6 +31,8 @@ export function projectSchema<I extends z.ZodType>(image: () => I) {
     alt: nonEmpty,
     caption: z.string().default(''),
     credit: z.string().default(''),
+    /** The same view at night (the lit lightboxes); the page offers a day / night switch. */
+    night: z.object({ src: image(), alt: nonEmpty }).optional(),
   });
   const youtubeMedia = z.object({
     type: z.literal('youtube'),
@@ -89,7 +91,7 @@ export const projectTranslationSchema = z.object({
   history: optionalText,
   fromAuthor: optionalText,
   /** Same order as the Russian media list. */
-  media: z.array(z.object({ alt: optionalText, caption: optionalText })).optional(),
+  media: z.array(z.object({ alt: optionalText, caption: optionalText, nightAlt: optionalText })).optional(),
 });
 
 const objectTranslation = z.object({ label: optionalText, alt: optionalText, story: optionalText });

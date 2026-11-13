@@ -3,7 +3,6 @@ import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import Pending from '../components/Pending.astro';
 import { getLocalSite, getObjects, getProjects, localizeProject, objectsOfProject, preview, projectHref, projectObjectStatus } from '../lib/content.ts';
-import { issueLabels, projectIssues } from '../lib/issues.ts';
 import { uiFor, type Lang } from '../lib/ui.ts';
 
 interface Props {
@@ -24,8 +23,6 @@ const tiles = (await Promise.all(projects.map(async (project) => {
     status,
     // One project, one object: the cut-out only when it is settled; otherwise a grey or red circle.
     cutout: status === 'certain' ? owned[0]?.object : undefined,
-    // Open questions are editorial notes on the Russian content, so only the Russian pages list them.
-    issues: preview && lang === 'ru' ? projectIssues(project.data, { owned: owned.length, claimed: claimed.length }).map((code) => issueLabels[code]) : [],
   };
 })))
   // Outside the preview, projects without objects are never listed (check-content fails published ones).
@@ -40,7 +37,7 @@ const tiles = (await Promise.all(projects.map(async (project) => {
     </header>
     {tiles.length === 0 ? <p>{ui.catalogueEmpty}</p> : (
       <ul class="catalogue">
-        {tiles.map(({ project, text, status, cutout, issues }) => (
+        {tiles.map(({ project, text, status, cutout }) => (
           <li>
             <a class="catalogue-tile" href={projectHref(project.data.slug, lang)}>
               {cutout ? (
@@ -57,7 +54,6 @@ const tiles = (await Promise.all(projects.map(async (project) => {
               {text.team.length > 0 && (
                 <span class="catalogue-team">{text.team.some((name) => name === null) ? <Pending text={ui.pendingName} /> : text.team.join(', ')}</span>
               )}
-              {issues.length > 0 && <ul class="issue-list">{issues.map((issue) => <li>{issue}</li>)}</ul>}
             </a>
           </li>
         ))}

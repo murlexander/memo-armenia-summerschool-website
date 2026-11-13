@@ -209,19 +209,7 @@ html.js .object-field[data-ready="false"] { opacity: 0; animation: field-reveal 
 .object-story b { display: block; margin-bottom: .25rem; font-size: .9rem; }
 .object-story > span { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 8; overflow: hidden; }
 
-/* Team preview: open questions, on FOUND and project pages only (the LOST field shows just the objects).
-   A clay «!» = something the team has to decide; dashed boxes stand in for a missing object, text or photos. */
-.issue-badge {
-  position: absolute; z-index: 3; top: 6%; left: 6%;
-  display: grid; place-items: center; width: 1.6rem; height: 1.6rem;
-  border-radius: 50%; background: var(--clay); color: #fff;
-  font-size: .95rem; font-weight: 800; line-height: 1;
-  box-shadow: 0 2px 6px rgb(47 35 23 / 25%);
-}
-.issue-list { display: flex; flex-wrap: wrap; gap: .3rem .9rem; margin: 0; padding: 0; list-style: none; color: var(--clay); font-size: .85rem; font-weight: 600; line-height: 1.35; }
-.issue-list li::before { content: "! "; }
-.issue-panel { margin: 1.5rem 0 0; padding: .9rem 1.1rem; border-left: 4px solid var(--clay); background: rgb(166 94 69 / 8%); border-radius: 0 .6rem .6rem 0; }
-.issue-panel h2 { margin: 0 0 .5rem; font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; color: var(--clay); }
+/* Team preview: dashed boxes stand in for missing text, photos, video or place. */
 .placeholder-box {
   display: grid; place-items: center;
   border: 2px dashed var(--line); border-radius: 1.2rem;
@@ -265,18 +253,58 @@ html.js .object-field[data-ready="false"] { opacity: 0; animation: field-reveal 
 .project-objects a:hover > span { text-decoration: underline; }
 .project-objects li { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: .25rem 1.25rem; }
 .object-story-text { flex: 1 1 16rem; max-width: 38ch; margin: 0; color: var(--muted); font-size: .9rem; line-height: 1.5; }
-.object-note { flex-basis: 100%; max-width: 13rem; margin: .1rem 0 0; padding: 0 .75rem; color: var(--clay); font-size: .8rem; font-weight: 600; line-height: 1.35; }
-.project-object-placeholder { width: min(100%, 13rem); height: 13rem; }
-.project-media-placeholder { margin: 0; aspect-ratio: 4 / 3; }
+.project-object-circle a { display: block; width: min(12rem, 60vw); padding: 0; }
+.project-object-circle .project-circle { width: 100%; }
+
+/* Three blocks: facts and object | where it is; story | main photo or video; process photos in one row.
+   Wide screens put each block in two columns, phones stack them. */
+.project-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(2.5rem, 6vw, 4rem); }
+.project-story { margin-top: clamp(3rem, 8vw, 6rem); }
+.project-where .place-map-where { margin-top: 0; }
+.project-where .place-map-small { max-width: none; }
+.project-where-placeholder { margin: 0; aspect-ratio: 640 / 420; }
+.project-texts .project-text:first-child { margin-top: 0; }
 .project-text { max-width: 68ch; margin-top: clamp(2.5rem, 6vw, 4.5rem); }
-.project-text h2, .project-media h2 { font-size: clamp(1.5rem, 3vw, 2.2rem); margin: 0 0 1rem; }
-.project-media { margin-top: clamp(3rem, 7vw, 5rem); display: grid; gap: clamp(1.5rem, 4vw, 3rem); max-width: 900px; }
-.project-media h2 { margin-bottom: 0; }
-/* Wide screens: text on the left, photos down the right; the photo grid adds columns as the page widens or zooms out. */
+.project-text h2 { font-size: clamp(1.5rem, 3vw, 2.2rem); margin: 0 0 1rem; }
+.main-media-placeholder { margin: 0; aspect-ratio: 4 / 3; }
+.main-media-placeholder.video-placeholder { aspect-ratio: 16 / 9; }
+.main-photo a { display: block; cursor: zoom-in; }
+.project-process { margin-top: clamp(3rem, 8vw, 5.5rem); }
+.process-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(.75rem, 2vw, 1.25rem); margin: 0; padding: 0; list-style: none; }
+.process-row a { display: block; cursor: zoom-in; }
+.process-row img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: .4rem; transition: transform 190ms cubic-bezier(.2,.78,.2,1); }
+.process-row a:hover img { transform: scale(1.02); }
+@media (min-width: 700px) { .process-row { grid-template-columns: repeat(var(--columns, 4), minmax(0, 1fr)); } }
 @media (min-width: 900px) {
-  .project-layout { display: grid; grid-template-columns: minmax(0, min(40rem, 55%)) minmax(0, 1fr); column-gap: clamp(2rem, 6vw, 7rem); align-items: start; }
-  .project-media { grid-template-columns: repeat(auto-fill, minmax(min(100%, 24rem), 1fr)); gap: 1.5rem; max-width: none; margin-top: 0; }
-  .project-media h2 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .project-row { grid-template-columns: minmax(0, min(40rem, 55%)) minmax(0, 1fr); column-gap: clamp(2rem, 6vw, 7rem); align-items: start; }
+  .project-where { padding-top: 2.4rem; }
+}
+
+/* Day / night: the lit lightbox swaps in over the daylight one (no script needed). */
+.daynight { display: grid; grid-template-columns: auto auto 1fr; gap: .75rem .25rem; align-items: center; }
+.daynight > label {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 4.5rem; min-height: 44px; padding: 0 1rem;
+  border: 1.5px solid var(--line); color: var(--muted); font-size: .9rem; font-weight: 700; cursor: pointer;
+}
+.daynight > label:first-of-type { border-radius: 999px 0 0 999px; }
+.daynight > label:last-of-type { border-left: 0; border-radius: 0 999px 999px 0; }
+.daynight-day:checked + label, .daynight-night:checked + label { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.daynight-day:focus-visible + label, .daynight-night:focus-visible + label { outline: 3px solid var(--lichen); outline-offset: 2px; }
+.daynight-frames { grid-column: 1 / -1; display: grid; }
+.daynight-frame { grid-area: 1 / 1; display: block; cursor: zoom-in; }
+.daynight-frame-night { visibility: hidden; }
+.daynight-night:checked ~ .daynight-frames .daynight-frame-night { visibility: visible; }
+.daynight-night:checked ~ .daynight-frames .daynight-frame-day { visibility: hidden; }
+
+/* Full-screen photo */
+.lightbox { width: 100vw; max-width: none; height: 100dvh; max-height: none; margin: 0; padding: 0; border: 0; background: rgb(20 18 16 / 94%); cursor: zoom-out; }
+.lightbox[open] { display: grid; place-items: center; }
+.lightbox::backdrop { background: rgb(20 18 16 / 70%); }
+.lightbox-image { max-width: 96vw; max-height: 92dvh; object-fit: contain; }
+.lightbox-close {
+  position: fixed; top: max(12px, env(safe-area-inset-top)); right: max(12px, env(safe-area-inset-right));
+  min-width: 48px; min-height: 48px; padding: 0 1rem; border: 0; border-radius: 999px;
+  background: rgb(238 231 219 / 92%); color: var(--ink); font: inherit; font-weight: 700; cursor: pointer;
 }
 
 .prose { overflow-wrap: break-word; }

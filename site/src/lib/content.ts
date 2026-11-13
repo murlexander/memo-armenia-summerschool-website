@@ -142,7 +142,11 @@ async function translateProject(project: Project, lang: Lang) {
       materials: data.materials as string | null,
       history: data.history as string | null,
       fromAuthor: data.fromAuthor as string | null,
-      media: data.media.map((item) => ({ alt: item.type === 'image' ? item.alt : item.title, caption: item.type === 'image' ? item.caption : '' })) as { alt: string | null; caption: string }[],
+      media: data.media.map((item) => ({
+        alt: item.type === 'image' ? item.alt : item.title,
+        caption: item.type === 'image' ? item.caption : '',
+        nightAlt: item.type === 'image' && item.night ? item.night.alt : null,
+      })) as { alt: string | null; caption: string; nightAlt: string | null }[],
     };
   }
   const t = (await getEntry('projectTranslations', `${data.id}/${lang}`))?.data;
@@ -155,7 +159,11 @@ async function translateProject(project: Project, lang: Lang) {
     materials: text(t?.materials, data.materials),
     history: text(t?.history, data.history),
     fromAuthor: text(t?.fromAuthor, data.fromAuthor),
-    media: data.media.map((item, index) => ({ alt: t?.media?.[index]?.alt ?? null, caption: item.type === 'image' && item.caption ? t?.media?.[index]?.caption ?? '' : '' })),
+    media: data.media.map((item, index) => ({
+      alt: t?.media?.[index]?.alt ?? null,
+      caption: item.type === 'image' && item.caption ? t?.media?.[index]?.caption ?? '' : '',
+      nightAlt: item.type === 'image' && item.night ? t?.media?.[index]?.nightAlt ?? null : null,
+    })),
   };
 }
 

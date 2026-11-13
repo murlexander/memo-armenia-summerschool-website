@@ -91,7 +91,10 @@ export async function checkContentDir(root: string, options: { preview: boolean 
       for (const field of missingProjectFields(project)) warnings.push(`${rel(file)}: missing ${field} (shown as a placeholder)`);
     }
     for (const media of project.media) {
-      if (media.type === 'image') requireFile(file, media.src, 'image');
+      if (media.type === 'image') {
+        requireFile(file, media.src, 'image');
+        if (media.night) requireFile(file, media.night.src, 'night image');
+      }
       else requireFile(file, media.poster, 'YouTube poster');
     }
   }

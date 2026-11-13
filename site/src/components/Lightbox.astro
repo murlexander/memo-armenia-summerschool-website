@@ -1,0 +1,31 @@
+---
+// Full-screen photo viewer for links marked .zoomable (href: the large image). Without JavaScript the
+// link simply opens the image.
+import { pageLocation } from '../lib/content.ts';
+import { uiFor } from '../lib/ui.ts';
+
+const ui = uiFor(pageLocation(Astro.url).lang);
+---
+<dialog class="lightbox" aria-label={ui.openPhoto}>
+  <button class="lightbox-close" type="button" autofocus>{ui.close}</button>
+  <img class="lightbox-image" alt="" />
+</dialog>
+
+<script>
+  const dialog = document.querySelector<HTMLDialogElement>('dialog.lightbox');
+  const image = dialog?.querySelector<HTMLImageElement>('.lightbox-image');
+  if (dialog && image) {
+    document.addEventListener('click', (event) => {
+      if (!(event.target instanceof Element)) return;
+      const link = event.target.closest<HTMLAnchorElement>('a.zoomable');
+      if (!link || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      image.src = link.href;
+      image.alt = link.querySelector('img')?.alt ?? '';
+      dialog.showModal();
+    });
+    // Any click closes it: on the photo, the backdrop or the button.
+    dialog.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('close', () => image.removeAttribute('src'));
+  }
+</script>
