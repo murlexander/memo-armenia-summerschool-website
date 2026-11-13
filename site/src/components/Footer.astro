@@ -23,4 +23,5 @@ const ui = uiFor(Astro.props.lang);
       {footer.partners.map((partner) => <li>{partner.url ? <a href={partner.url} rel="noopener">{partner.name}</a> : partner.name}</li>)}
     </ul>
   )}
+  <p class="footer-credit">{ui.siteBy} <a href="https://alex-markin.com/" rel="noopener">{ui.siteAuthor}</a></p>
 </footer>
