@@ -110,29 +110,30 @@ html[lang="hy"] .title-menu { font-size: 13.6cqi; }
 .site-phrase { max-width: 52ch; margin: .6rem 0 0; color: var(--muted); font-size: clamp(.95rem, 1.4vw, 1.1rem); line-height: 1.45; }
 
 /* LOST (home) */
-.home-intro { display: grid; gap: 1rem; padding: clamp(1.5rem, 4vw, 3.5rem) var(--gutter) 0; }
+.home-intro { display: grid; gap: .5rem; padding: clamp(1rem, 3vw, 2.5rem) var(--gutter) 0; }
 .home-variant { display: none; }
 html[data-home="1"] .home-variant[data-variant="1"],
 html[data-home="2"] .home-variant[data-variant="2"],
 html[data-home="3"] .home-variant[data-variant="3"] { display: block; }
 .home-lead { max-width: 34ch; margin: 0; font-size: clamp(1.25rem, 2.6vw, 2rem); line-height: 1.3; letter-spacing: -.01em; }
-.home-keywords { max-width: 70ch; margin: 1rem 0 0; color: var(--muted); font-size: clamp(.95rem, 1.4vw, 1.1rem); line-height: 1.6; }
+.home-keywords { max-width: 64ch; margin: .75rem 0 0; color: var(--muted); font-size: clamp(.95rem, 1.4vw, 1.1rem); line-height: 1.45; }
 .home-keywords .keyword { white-space: nowrap; }
 .field-instruction { display: flex; gap: .6rem; align-items: baseline; margin: 0; color: var(--muted); font-size: .95rem; }
-.variant-switch { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; font-size: .9rem; color: var(--muted); }
-.variant-switch a { display: inline-grid; place-items: center; min-width: 48px; min-height: 48px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink); text-decoration: none; }
-.variant-switch a[aria-current] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
-/* Wide landscape screens use the width the title spans: the lead on the left, the instruction
-   and switcher on the right, and the keywords as a full-width band below. */
+.variant-switch { display: flex; flex-wrap: wrap; align-items: center; gap: 0 .25rem; font-size: .8rem; color: var(--muted); }
+.variant-switch a { display: inline-grid; place-items: center; min-width: 44px; min-height: 44px; text-decoration: none; }
+.variant-switch a:hover { text-decoration: underline; }
+.variant-switch a[aria-current] { color: var(--ink); font-weight: 700; text-decoration: underline; text-decoration-color: var(--clay); text-decoration-thickness: 2px; }
+@media (max-width: 599px) {
+  .home-keywords { font-size: .875rem; }
+}
+/* Keep the lead and readable keyword measure together; review controls sit alongside on desktop. */
 @media (orientation: landscape) and (min-width: 900px) {
-  .home-intro { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); column-gap: clamp(2rem, 5vw, 5rem); row-gap: 1.25rem; align-content: start; }
-  html[data-home="1"] .home-variant[data-variant="1"],
-  html[data-home="2"] .home-variant[data-variant="2"],
-  html[data-home="3"] .home-variant[data-variant="3"] { display: contents; }
-  .home-lead { grid-column: 1; grid-row: 1 / span 2; max-width: none; font-size: clamp(1.5rem, 2.9vw, 2.9rem); line-height: 1.2; }
+  .home-intro { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); grid-template-rows: auto 1fr; column-gap: clamp(2rem, 5vw, 5rem); row-gap: .5rem; align-content: start; }
+  .home-variant { grid-column: 1; grid-row: 1 / span 2; }
+  .home-lead { max-width: none; font-size: clamp(1.5rem, 2.9vw, 2.9rem); line-height: 1.2; }
   .field-instruction { grid-column: 2; grid-row: 1; padding-top: .5em; }
   .variant-switch { grid-column: 2; grid-row: 2; align-self: start; }
-  .home-keywords { grid-column: 1 / -1; grid-row: 3; margin: .5rem 0 0; max-width: none; font-size: clamp(1.1rem, 1.75vw, 1.7rem); line-height: 1.5; }
+  .home-keywords { font-size: clamp(1.1rem, 1.4vw, 1.35rem); }
 }
 
 /* Object field (ObjectField.astro, docs/collage-algorithm.md) */
