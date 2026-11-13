@@ -1,6 +1,6 @@
 ---
-// A project page in three blocks: who made it, from what and where (with the place on the right);
-// its story with the main photo or video; the process photos in one row.
+// A project page in three blocks: who made it, from what and where (with the place on the right; films have no
+// place); its story with the main photo or video; the process photos in one row.
 import type { ImageMetadata } from 'astro';
 import { getImage, Image } from 'astro:assets';
 import { getEntry } from 'astro:content';
@@ -33,6 +33,9 @@ const team = text.team.some((name) => name === null) ? null : text.team.join(', 
 const status = projectObjectStatus(project, owned, claimed);
 const objects = status === 'certain' ? owned.map(({ object }) => ({ object, text: localizeObject(object, lang) })) : [];
 
+// The film studio's main piece is its video, and a film has no place on the map; everyone else's is the first photo.
+const film = data.studio === 'Кино';
+
 // Where it is: the small map, or (preview) a placeholder while no place on the map names this project.
 const map = (await getEntry('map', 'map'))?.data;
 const hasPlace = Boolean(map && (preview || map.published) && map.places.some((place) => place.projectIds.includes(data.id)));
@@ -54,28 +57,33 @@ const photos = await Promise.all(data.media.map(async (item, index) => {
 const videoIndex = data.media.findIndex((item) => item.type === 'youtube');
 const video = videoIndex >= 0 ? data.media[videoIndex] : undefined;
 const images = photos.filter((photo) => photo !== null);
-// The film studio's main piece is its video; everyone else's is the first photo.
-const film = data.studio === 'Кино';
 const main = video?.type === 'youtube' ? undefined : film ? undefined : images[0];
 const process = main ? images.slice(1) : images;
 const processColumns = Math.min(6, Math.max(3, process.length));
 const day = `daynight-${data.id}`;
+// «Back» returns to LOST, FOUND or the map, whichever the visitor came from (see the script below); FOUND without script.
+const backTo = { lost: { href: href('', lang), label: ui.allObjects }, place: { href: href('pokr-ayrum/', lang), label: mapStrings[lang].title } };
 ---
 <Base title={title} section="found" sectionIndex={false} description={`${title}. ${ui.team}: ${team ?? ui.pendingName}`}>
   <article class="page-shell project">
-    <p class="back-row"><a class="back-link" href={href('found/', lang)}>← {ui.allProjects}</a></p>
+    <p class="back-row"><a class="back-link" href={href('found/', lang)} data-back={JSON.stringify(backTo)}>{`← ${ui.allProjects}`}</a></p>
 
     <div class="project-row project-intro">
       <div class="project-main">
         <header class="project-head">
-          {text.studio !== undefined && <p class="eyebrow">{ui.studio}: {text.studio ?? <Pending text={ui.pendingName} />}</p>}
           <h1>{text.title ?? <Pending text={ui.pendingTitle} />}</h1>
           <dl class="project-facts">
             <div>
               <dt>{ui.team}</dt>
               <dd>{team === null ? <Pending text={ui.pendingName} /> : team || (preview ? ui.notSpecified : '')}</dd>
             </div>
-            <div>
+            {text.studio !== undefined && (
+              <div>
+                <dt>{ui.studio}</dt>
+                <dd>{text.studio ?? <Pending text={ui.pendingName} />}</dd>
+              </div>
+            )}
+            <div class="project-fact-materials">
               <dt>{ui.materials}</dt>
               <dd>{text.materials === null ? <Pending text={ui.pendingText} /> : text.materials.trim() ? <Prose source={text.materials} /> : preview ? ui.notSpecified : ''}</dd>
             </div>
@@ -108,14 +116,16 @@ const day = `daynight-${data.id}`;
         </section>
       </div>
 
-      <aside class="project-where">
-        {hasPlace ? <PlaceMap lang={lang} mode="project" projectId={data.id} /> : preview && (
-          <section class="place-map-where" aria-labelledby="place-map-where-title">
-            <h2 id="place-map-where-title">{mapStrings[lang].where}</h2>
-            <p class="placeholder-box project-where-placeholder">{ui.noPlace}</p>
-          </section>
-        )}
-      </aside>
+      {!film && (
+        <aside class="project-where">
+          {hasPlace ? <PlaceMap lang={lang} mode="project" projectId={data.id} /> : preview && (
+            <section class="place-map-where" aria-labelledby="place-map-where-title">
+              <h2 id="place-map-where-title">{mapStrings[lang].where}</h2>
+              <p class="placeholder-box project-where-placeholder">{ui.noPlace}</p>
+            </section>
+          )}
+        </aside>
+      )}
     </div>
 
     <div class="project-row project-story">
@@ -185,3 +195,46 @@ const day = `daynight-${data.id}`;
   </article>
   <Lightbox />
 </Base>
+
+<script>
+  // Back to where the visitor came from. Opened from LOST, FOUND or the map, the link names that page; straight back
+  // from it, the browser returns to the same spot (and LOST to the same arrangement). Moving between project pages
+  // or languages keeps the last of the three; anything else leads to FOUND.
+  const link = document.querySelector<HTMLAnchorElement>('a.back-link[data-back]');
+  if (link) {
+    const key = 'project-back';
+    const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
+    const pageOf = (url: URL) => {
+      if (url.origin !== location.origin || !url.pathname.startsWith(base)) return null;
+      const path = url.pathname.slice(base.length).replace(/^(en|hy)\//, '');
+      return path === '' ? 'lost' : path === 'found/' ? 'found' : path === 'pokr-ayrum/' ? 'place' : path.startsWith('found/') ? 'project' : null;
+    };
+    let from: string | null = null;
+    try {
+      from = document.referrer ? pageOf(new URL(document.referrer)) : null;
+    } catch {
+      // An unreadable referrer counts as none.
+    }
+    let target: string | null = from === 'project' ? null : from;
+    try {
+      if (from === 'project') target = sessionStorage.getItem(key);
+      if (target) sessionStorage.setItem(key, target);
+      else sessionStorage.removeItem(key);
+    } catch {
+      // Storage may be unavailable; the link still works.
+    }
+    const pages: Record<string, { href: string; label: string }> = JSON.parse(link.dataset.back ?? '{}');
+    const page = target ? pages[target] : undefined;
+    if (page) {
+      link.href = page.href;
+      link.textContent = `← ${page.label}`;
+    }
+    if (target && from === target) {
+      link.addEventListener('click', (event) => {
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        event.preventDefault();
+        history.back();
+      });
+    }
+  }
+</script>

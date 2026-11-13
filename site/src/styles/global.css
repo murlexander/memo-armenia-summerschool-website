@@ -223,7 +223,6 @@ html.js .object-field[data-ready="false"] { opacity: 0; animation: field-reveal 
 .home-map { padding-top: 0; }
 .page-head h1 { margin: 0; font-size: clamp(2.6rem, 7vw, 5.5rem); letter-spacing: -.04em; overflow-wrap: anywhere; }
 .page-sub { margin: .75rem 0 0; color: var(--muted); font-size: clamp(1rem, 1.6vw, 1.2rem); }
-.eyebrow { margin: 0 0 .75rem; color: var(--muted); font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; }
 
 /* FOUND catalogue */
 .catalogue { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, clamp(9rem, 20vw, 15rem)), 1fr)); gap: clamp(1rem, 3vw, 2.5rem); margin: clamp(2rem, 5vw, 4rem) 0 0; padding: 0; list-style: none; }
@@ -242,7 +241,13 @@ html.js .object-field[data-ready="false"] { opacity: 0; animation: field-reveal 
 .back-row { margin: 0 0 1.5rem; }
 .back-link { display: inline-flex; align-items: center; min-height: 48px; font-size: .95rem; }
 .project-head h1 { margin: 0; font-size: clamp(2.4rem, 6.5vw, 5rem); letter-spacing: -.04em; overflow-wrap: anywhere; }
-.project-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: 1.5rem clamp(1.5rem, 4vw, 4rem); margin: 2rem 0 0; }
+.project-head { container-type: inline-size; }
+.project-facts { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.5rem clamp(1.5rem, 4vw, 4rem); margin: 2rem 0 0; }
+/* Two columns where they fit: team and studio on the left, materials beside them. */
+@container (min-width: 34rem) {
+  .project-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: auto 1fr; }
+  .project-fact-materials { grid-column: 2; grid-row: 1 / span 2; }
+}
 .project-facts dt { color: var(--muted); font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; }
 .project-facts dd { margin: .3rem 0 0; }
 .project-facts dd .prose > :first-child { margin-top: 0; }
