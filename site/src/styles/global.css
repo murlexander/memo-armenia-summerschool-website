@@ -495,7 +495,12 @@ a.pm-item:hover .pm-name, .place-map-list > li[data-active] .pm-name { text-deco
 /* Wide: the map on the left, the list beside it. */
 @container (min-width: 68rem) {
   .place-map-layout { grid-template-columns: minmax(0, 1fr) minmax(17rem, 24rem); align-items: start; }
-  .place-map-figure { position: sticky; top: 1rem; }
+  /* Stays in the vertical centre of the screen while the list scrolls (without the script, at the top),
+     never taller than the screen. */
+  .place-map-figure {
+    position: sticky; top: max(1rem, calc(50vh - var(--map-half, 50vh)));
+    width: min(100%, calc((100vh - 2rem) * var(--map-aspect, 1.2)));
+  }
   .place-map-list { grid-template-columns: minmax(0, 1fr); }
 }
 @media (prefers-reduced-motion: reduce) {

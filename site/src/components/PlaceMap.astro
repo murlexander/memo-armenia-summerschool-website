@@ -76,7 +76,7 @@ const r1 = (value: number) => Math.round(value * 10) / 10;
   <section class="place-map" id="map" aria-labelledby="place-map-title" data-place-map>
     <h2 id="place-map-title">{strings.title}</h2>
     <div class="place-map-layout">
-      <figure class="place-map-figure">
+      <figure class="place-map-figure" style={`--map-aspect: ${(full.width / full.height).toFixed(3)}`}>
         {/* Narrow screens: the drawing is wider than the screen and swipes sideways. */}
         <div class="place-map-scroll">
         <svg class="place-map-svg" viewBox={`0 0 ${full.width} ${full.height}`} aria-hidden="true" focusable="false">
@@ -191,6 +191,10 @@ const r1 = (value: number) => Math.round(value * 10) / 10;
     const svg = root.querySelector<SVGSVGElement>('.place-map-svg');
     const tip = root.querySelector<HTMLElement>('.place-map-tip');
     if (!figure || !svg || !tip) continue;
+    // Wide screens keep the drawing in view while the list scrolls; centre it vertically (CSS needs its height).
+    const half = () => root.style.setProperty('--map-half', `${figure.offsetHeight / 2}px`);
+    half();
+    new ResizeObserver(half).observe(figure);
     // Where the drawing scrolls, start at its middle and let the keyboard scroll it too.
     const scroller = root.querySelector<HTMLElement>('.place-map-scroll');
     if (scroller && scroller.scrollWidth > scroller.clientWidth) {
