@@ -2,6 +2,7 @@
 import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
 import { isPreview } from './build-env.ts';
 import { objectStatus, type ObjectStatus } from './issues.ts';
+import { unquoteStatement } from './quotes.ts';
 import { defaultLang, langs, type Lang } from './ui.ts';
 
 export type Project = CollectionEntry<'projects'>;
@@ -128,7 +129,7 @@ export async function localizeProject(project: Project, lang: Lang) {
     team: uncertain.has('team') ? text.team.map(() => null) : text.team,
     materials: uncertain.has('materials') ? null : text.materials,
     history: uncertain.has('history') ? null : text.history,
-    fromAuthor: uncertain.has('fromAuthor') ? null : text.fromAuthor,
+    fromAuthor: uncertain.has('fromAuthor') ? null : text.fromAuthor && unquoteStatement(text.fromAuthor),
   };
 }
 
