@@ -222,6 +222,8 @@ html.js .object-field[data-ready="false"] { opacity: 0; animation: field-reveal 
 
 /* Shared page layout */
 .page-shell { margin: 0 var(--gutter); padding: clamp(1.5rem, 4vw, 3.5rem) 0 clamp(4rem, 9vw, 7rem); }
+/* Home: the map follows the object field directly; its own top margin is the gap. */
+.home-map { padding-top: 0; }
 .page-head h1 { margin: 0; font-size: clamp(2.6rem, 7vw, 5.5rem); letter-spacing: -.04em; overflow-wrap: anywhere; }
 .page-sub { margin: .75rem 0 0; color: var(--muted); font-size: clamp(1rem, 1.6vw, 1.2rem); }
 .eyebrow { margin: 0 0 .75rem; color: var(--muted); font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; }

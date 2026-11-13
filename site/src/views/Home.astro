@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import ObjectField from '../components/ObjectField.tsx';
 import Pending from '../components/Pending.astro';
+import PlaceMap from '../components/PlaceMap.astro';
 import { getLocalSite, href, objectAnchor, preview } from '../lib/content.ts';
 import { getFieldObjects } from '../lib/field.ts';
 import { uiFor, type Lang } from '../lib/ui.ts';
@@ -49,6 +50,10 @@ const hideInstruction = variants
     )}
   </section>
   <ObjectField client:load objects={objects} label={ui.objects} describedBy="field-instruction" anchorPrefix={objectAnchor('')} projectWord={ui.project} />
+  {/* The map of places under the field; the page shell also gives the footer its usual space above. */}
+  <div class="page-shell home-map">
+    <PlaceMap lang={lang} />
+  </div>
 </Base>
 
 {preview && (
