@@ -60,7 +60,7 @@ const geometry: FieldGeometry[] = objects.map(({ id, visualWeight, intrinsicSize
               width={object.image.width}
               height={object.image.height}
               alt={object.alt}
-              loading={card.loading}
+              loading="lazy"
               decoding="async"
               draggable="false"
               style={card.imageStyle}
@@ -144,6 +144,8 @@ const geometry: FieldGeometry[] = objects.map(({ id, visualWeight, intrinsicSize
       width = measured;
       render();
     };
+    // Promote the visit's first images only after placement, so the fixed server seed does not
+    // eagerly request unrelated offscreen cut-outs. Native lazy loading also covers the no-JS layout.
     measure();
     field.dataset.ready = 'true';
     new ResizeObserver(measure).observe(field);

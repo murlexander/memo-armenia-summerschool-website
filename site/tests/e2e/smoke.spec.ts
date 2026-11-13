@@ -116,6 +116,9 @@ test('the server-rendered object field keeps usable project links without JavaSc
   try {
     const page = await context.newPage();
     await page.goto(base);
+    const image = page.locator('.object-field img').first();
+    await image.scrollIntoViewIfNeeded();
+    await expect.poll(() => image.evaluate((element: HTMLImageElement) => element.naturalWidth)).toBeGreaterThan(0);
     const first = page.locator('.object-field a[data-testid="field-object"]').first();
     await expect(first).toBeVisible();
     const href = await first.getAttribute('href');

@@ -117,19 +117,21 @@ const BAND_CAPACITY = 3;
  */
 function horizontalBandTest(placements: Rect[]) {
   const centres = placements.map((placement) => placement.y + placement.height / 2).sort((a, b) => a - b);
-  const banded = (list: number[], from: number, to: number) => {
-    for (let index = Math.max(0, from); index <= to && index + BAND_CAPACITY < list.length; index += 1) {
-      if (list[index + BAND_CAPACITY] - list[index] < BAND_SPAN) return true;
-    }
-    return false;
-  };
-  if (banded(centres, 0, centres.length)) return () => true;
+  for (let index = 0; index + BAND_CAPACITY < centres.length; index += 1) {
+    if (centres[index + BAND_CAPACITY] - centres[index] < BAND_SPAN) return () => true;
+  }
   return (centerY: number) => {
-    // Only windows holding the new centre can be new bands.
+    // Only windows holding the new centre can be new bands. Read their endpoints as if the
+    // centre were inserted, rather than allocating slices and a merged array for every candidate.
     let at = 0;
     while (at < centres.length && centres[at] < centerY) at += 1;
-    const merged = [...centres.slice(Math.max(0, at - BAND_CAPACITY), at), centerY, ...centres.slice(at, at + BAND_CAPACITY)];
-    return banded(merged, 0, merged.length);
+    for (let index = Math.max(0, at - BAND_CAPACITY); index <= at && index + BAND_CAPACITY <= centres.length; index += 1) {
+      const first = index === at ? centerY : centres[index];
+      const lastIndex = index + BAND_CAPACITY;
+      const last = lastIndex === at ? centerY : centres[lastIndex - 1];
+      if (last - first < BAND_SPAN) return true;
+    }
+    return false;
   };
 }
 
