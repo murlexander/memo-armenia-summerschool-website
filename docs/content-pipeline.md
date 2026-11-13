@@ -8,7 +8,7 @@ How real material gets from the team's Google Drive onto the public site. Drive 
 
 | Drive path | Contents |
 | --- | --- |
-| «Таблица текстов и фото» (sheet) | The source of truth. Tab «прокты»: projects grouped by studio with ID, authors, title, status and open questions, links to text, photos and objects. Tab «предметы»: objects with ID, description, photo numbers, owning project, conflicts and links to the photos |
+| «индекс: проеты, предметы» (sheet, formerly «Таблица текстов и фото») | The source of truth. Tab «прокты»: projects grouped by studio with ID, authors, title, status, links to text, photos and object, and object conflicts. Tab «предметы»: objects keyed by their photo chip (oNNN.jpg, or oNNN_k.jpg for several photos), with what it is, description, photo numbers, owning project and conflicts |
 | «Главная, шапка, подвал и меню» (doc) | Header, home text variants, menu and footer copy |
 | «Формат текстов второй страницы» (doc) | Project page template |
 | `Работа на посте/все фото/предметы/` | Object photos named by object ID (`o043.jpg`, `o009_1.jpg`…), not yet cut out |
