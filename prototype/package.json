@@ -16,7 +16,7 @@
     "validate": "npm test && npm run typecheck && npm run lint && npm run build && npm run build:pages"
   },
   "dependencies": {
-    "next": "16.4.5",
+    "next": "16.4.6",
     "react": "19.3.1",
     "react-dom": "19.3.1"
   },
@@ -31,7 +31,7 @@
     "@vitejs/plugin-react": "6.2.1",
     "@vitejs/plugin-rsc": "0.5.39",
     "eslint": "9.39.4",
-    "eslint-config-next": "16.4.5",
+    "eslint-config-next": "16.4.6",
     "react-server-dom-webpack": "19.3.1",
     "tailwindcss": "4.3.5",
     "typescript": "5.9.3",
