@@ -1,6 +1,6 @@
 ---
 // A project page: its title across the page, then three blocks: who made it, from what and where (with the place on
-// the right; films and projects without a place show their object there instead); its story with the main photo or
+// the right; films, zines and projects without a place show their object there instead); its story with the main photo or
 // video; the process photos in one row.
 import type { ImageMetadata } from 'astro';
 import { getImage, Image } from 'astro:assets';
@@ -34,14 +34,16 @@ const team = text.team.some((name) => name === null) ? null : text.team.join(', 
 const status = projectObjectStatus(project, owned, claimed);
 const objects = status === 'certain' ? owned.map(({ object }) => ({ object, text: localizeObject(object, lang) })) : [];
 
-// The film studio's main piece is its video, and a film has no place on the map; everyone else's is the first photo.
+// The film studio's main piece is its video; everyone else's is the first photo.
 const film = data.studio === 'Кино';
+// Films and zines have no place of their own, so they don't wait for one on the map.
+const placeless = film || data.studio === 'Зины';
 
-// Where it is: the small map, or (preview) a placeholder while no place on the map names this project.
+// Where it is: the small map, or (preview) a placeholder while no place on the map names this project yet.
 const map = (await getEntry('map', 'map'))?.data;
 const hasPlace = Boolean(map && (preview || map.published) && map.places.some((place) => place.projectIds.includes(data.id)));
 // Without a «where» block, the object takes its column beside the facts.
-const where = !film && (hasPlace || preview);
+const where = hasPlace || (preview && !placeless);
 
 // Photos open full screen from a large copy; the page shows smaller ones.
 const large = async (src: ImageMetadata) => (await getImage({ src, width: Math.min(2400, src.width), format: 'webp' })).src;
