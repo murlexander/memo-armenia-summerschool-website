@@ -253,12 +253,12 @@ html.js .object-field[data-ready="false"] { opacity: 0; animation: field-reveal 
 }
 .project-facts dt, .project-objects h2, .project-where .place-map-where h2 { color: var(--muted); font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; }
 .project-facts dd { margin: .3rem 0 0; }
-/* On the project page «where is it» is labelled like the facts beside it, its map level with their text. */
-.project-where .place-map-where h2 { margin: 0 0 .3rem; font-weight: 400; line-height: inherit; }
+/* On the project page the object and «where is it» are labelled like the facts beside them, their pictures level with
+   the facts' text. */
+.project-objects h2, .project-where .place-map-where h2 { margin: 0 0 .3rem; font-weight: 400; line-height: inherit; }
 .project-facts dd .prose > :first-child { margin-top: 0; }
 /* The object is one linked cut-out and caption; its story sits beside it where the facts' columns fit. */
-.project-objects { margin-top: clamp(2rem, 5vw, 3rem); }
-.project-objects h2 { margin: 0 0 .6rem; font-weight: 400; line-height: inherit; }
+.project-objects { container-type: inline-size; margin-top: clamp(2rem, 5vw, 3rem); }
 .project-objects ul { display: grid; gap: 2rem; margin: 0; padding: 0; list-style: none; }
 .project-object { display: grid; grid-template-columns: minmax(0, 1fr); gap: .75rem clamp(1.5rem, 4vw, 4rem); align-items: start; }
 .project-object-link { display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; justify-items: start; gap: .75rem; width: min(100%, 18rem); text-decoration: none; }
@@ -275,8 +275,11 @@ html.js .object-field[data-ready="false"] { opacity: 0; animation: field-reveal 
 }
 
 /* Under the title, three blocks: facts and object | where it is; story | main photo or video; process photos in one row.
-   Wide screens put each block in two columns, phones stack them. */
+   Wide screens put each block in two columns, phones stack them. Without «where» (films, or no place), the object
+   takes the right column, level with the facts as the map would be. */
 .project-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(2.5rem, 6vw, 4rem); }
+.project-intro { row-gap: 0; }
+.project-intro .project-where { margin-top: clamp(2.5rem, 6vw, 4rem); }
 .project-story { margin-top: clamp(3rem, 8vw, 6rem); }
 /* «Where is it»: one column shows the map's frame (see PlaceMap). Two columns stretch it to the left column's
    height: the map (or the preview placeholder) takes what the label and caption leave, between half its width
@@ -303,6 +306,12 @@ html.js .object-field[data-ready="false"] { opacity: 0; animation: field-reveal 
 @media (min-width: 700px) { .process-row { grid-template-columns: repeat(var(--columns, 4), minmax(0, 1fr)); } }
 @media (min-width: 900px) {
   .project-row { grid-template-columns: minmax(0, min(40rem, 55%)) minmax(0, 1fr); column-gap: clamp(2rem, 6vw, 7rem); align-items: start; }
+  .project-intro { grid-template-areas: "main where" "objects where"; grid-template-rows: auto 1fr; }
+  .project-intro > .project-main { grid-area: main; }
+  .project-intro > .project-objects { grid-area: objects; }
+  .project-intro > .project-where { grid-area: where; margin-top: 0; }
+  .project-intro-no-where { grid-template-areas: "main objects"; grid-template-rows: auto; }
+  .project-intro-no-where > .project-objects { margin-top: 0; }
   .project-where { align-self: stretch; }
   .project-where .place-map-open { min-height: calc(100cqw * var(--map-shortest)); }
   .project-where-placeholder { min-height: calc(100cqw * .5); }
