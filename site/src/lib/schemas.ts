@@ -150,8 +150,8 @@ export const pageSchema = z.object({
 const homeVariant = z.object({
   lead: nonEmpty,
   keywords: z.array(nonEmpty).optional(),
-  /** false when the lead itself invites the visitor to pick an object; 'large' sets the instruction bigger */
-  instruction: z.union([z.boolean(), z.literal('large')]).default(true),
+  /** false when the lead itself invites the visitor to pick an object */
+  instruction: z.boolean().default(true),
 });
 
 export const siteSchema = z.object({

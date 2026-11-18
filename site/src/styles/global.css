@@ -115,23 +115,16 @@ html[lang="hy"] .title-menu { font-size: 13.6cqi; }
 html[data-home="1"] .home-variant[data-variant="1"],
 html[data-home="2"] .home-variant[data-variant="2"],
 html[data-home="3"] .home-variant[data-variant="3"] { display: block; }
-.home-lead { max-width: 34ch; margin: 0; font-size: clamp(1.25rem, 2.6vw, 2rem); line-height: 1.3; letter-spacing: -.01em; }
-.home-keywords { max-width: 64ch; margin: .75rem 0 0; color: var(--muted); font-size: clamp(.95rem, 1.4vw, 1.1rem); line-height: 1.45; }
+/* The lead and keywords run the title's full width and scale with it; the instruction sits centred on its own line,
+   right above the objects. */
+.home-lead { margin: 0; font-size: clamp(1.25rem, 4.2vw, 2.5rem); line-height: 1.22; letter-spacing: -.01em; text-wrap: pretty; }
+.home-keywords { margin: .9rem 0 0; color: var(--muted); font-size: clamp(.875rem, 2.1vw, 1.15rem); line-height: 1.5; }
 .home-keywords .keyword { white-space: nowrap; }
-.field-instruction { display: flex; gap: .6rem; align-items: baseline; margin: clamp(1rem, 2.5vw, 2rem) 0 0; color: var(--muted); font-size: .95rem; }
-html[data-home="1"] [data-large-instruction~="1"] .field-instruction,
-html[data-home="2"] [data-large-instruction~="2"] .field-instruction,
-html[data-home="3"] [data-large-instruction~="3"] .field-instruction { color: var(--ink); font-size: clamp(1.15rem, 1.6vw, 1.35rem); line-height: 1.3; text-wrap: balance; }
-@media (max-width: 599px) {
-  .home-keywords { font-size: .875rem; }
-}
-/* Keep the lead and readable keyword measure together; the instruction gets its own line right above the objects. */
+.field-instruction { margin: clamp(1.5rem, 4vw, 3rem) 0 0; color: var(--ink); font-size: clamp(1.15rem, 1.6vw, 1.35rem); line-height: 1.3; text-align: center; text-wrap: balance; }
+.field-instruction-arrow { margin-right: .5em; }
 @media (orientation: landscape) and (min-width: 900px) {
-  .home-intro { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); column-gap: clamp(2rem, 5vw, 5rem); align-items: start; }
-  .home-variant { grid-column: 1; grid-row: 1; }
-  .home-lead { max-width: none; font-size: clamp(1.5rem, 2.9vw, 2.9rem); line-height: 1.2; }
-  .field-instruction { grid-column: 1 / -1; grid-row: 2; }
-  .home-keywords { font-size: clamp(1.1rem, 1.4vw, 1.35rem); }
+  .home-lead { font-size: clamp(1.5rem, 2.8vw, 5rem); line-height: 1.15; }
+  .home-keywords { margin-top: 1.1rem; font-size: clamp(1.1rem, 1.3vw, 1.75rem); }
 }
 
 /* Object field (ObjectField.astro, docs/collage-algorithm.md) */

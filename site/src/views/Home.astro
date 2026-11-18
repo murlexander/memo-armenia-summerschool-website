@@ -5,6 +5,7 @@ import Pending from '../components/Pending.astro';
 import PlaceMap from '../components/PlaceMap.astro';
 import { getLocalSite, href, objectAnchor, preview } from '../lib/content.ts';
 import { getFieldObjects } from '../lib/field.ts';
+import { bindShortWords } from '../lib/typography.ts';
 import { uiFor, type Lang } from '../lib/ui.ts';
 
 interface Props {
@@ -21,16 +22,14 @@ const hideInstruction = variants
   .filter((variant) => !variant.instruction)
   .map((variant) => `html[data-home="${variant.key}"] .field-instruction{display:none}`)
   .join('');
-// Variants that ask for a bigger instruction; global.css enlarges it while one of them is shown.
-const largeInstruction = variants.filter((variant) => variant.instruction === 'large').map((variant) => variant.key).join(' ');
 ---
 <Base section="lost" homeVariant={site.defaultHomeVariant}>
   {hideInstruction && <style is:inline set:html={hideInstruction} />}
-  <section class="home-intro" aria-labelledby="home-title" data-large-instruction={largeInstruction || undefined}>
+  <section class="home-intro" aria-labelledby="home-title">
     <h1 id="home-title" class="visually-hidden">{site.title}</h1>
     {variants.map((variant) => (
       <div class="home-variant" data-variant={variant.key}>
-        <p class="home-lead">{variant.lead ?? <Pending text={ui.pendingText} />}</p>
+        <p class="home-lead">{variant.lead ? bindShortWords(variant.lead) : <Pending text={ui.pendingText} />}</p>
         {variant.keywords === null && <p class="home-keywords"><Pending text={ui.pendingText} /></p>}
         {variant.keywords && variant.keywords.length > 0 && (
           <p class="home-keywords">
@@ -41,7 +40,7 @@ const largeInstruction = variants.filter((variant) => variant.instruction === 'l
         )}
       </div>
     ))}
-    <p class="field-instruction" id="field-instruction"><span aria-hidden="true">↓</span> {ui.chooseObject}</p>
+    <p class="field-instruction" id="field-instruction"><span class="field-instruction-arrow" aria-hidden="true">↓</span>{ui.chooseObject}</p>
   </section>
   {preview && (
     <nav class="variant-switch" aria-label={ui.homeVariant} data-autohide="up">

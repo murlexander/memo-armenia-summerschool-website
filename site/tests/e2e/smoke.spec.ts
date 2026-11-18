@@ -148,13 +148,8 @@ test('home text variants switch with ?home=', async ({ page }) => {
     await expect(page.locator(`.home-variant[data-variant="${variant}"]`)).toBeVisible();
     await expect(page.locator('.home-variant:visible')).toHaveCount(1);
   }
-  const instructionSize = () => page.locator('.field-instruction').evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
-  await page.goto(`${base}?home=1`);
-  const normalSize = await instructionSize();
   await page.goto(`${base}?home=2`);
   await expect(page.locator('.home-keywords .keyword').first()).toBeVisible();
-  // The fixture's variant 2 asks for a bigger instruction.
-  expect(await instructionSize()).toBeGreaterThan(normalSize);
   await page.goto(`${base}?home=3`);
   await expect(page.locator('.field-instruction')).toBeHidden();
 });

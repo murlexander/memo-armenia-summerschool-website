@@ -8,7 +8,7 @@ This is the implementation contract for the prototype collection. It translates 
 - Every object is one direct link to a participant project: fine pointers communicate this through motion, while touch layouts show a plain object title and ↗.
 - All thirty fictional entries remain present at every width.
 - The identity stays light, warm, tactile, and subtly grainy.
-- The instruction “Choose an object to open its project.” appears once before the field.
+- The instruction “Choose an object to open its project” appears once before the field.
 
 ## Object descriptor
 

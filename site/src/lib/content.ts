@@ -95,7 +95,7 @@ export async function getLocalSite(lang: Lang) {
     const own = translation?.homeVariants?.[key];
     const source = site.homeVariants[key];
     return [key, { lead: own?.lead ?? null, keywords: source.keywords ? own?.keywords ?? null : undefined, instruction: source.instruction }];
-  })) as Record<'1' | '2' | '3', { lead: string | null; keywords?: string[] | null; instruction: boolean | 'large' }>;
+  })) as Record<'1' | '2' | '3', { lead: string | null; keywords?: string[] | null; instruction: boolean }>;
   return {
     title: translation?.title ?? defaults.title,
     phrase: site.phrase ? translation?.phrase ?? null : undefined,
