@@ -9,9 +9,10 @@ import Base from '../layouts/Base.astro';
 import Lightbox from '../components/Lightbox.astro';
 import Pending from '../components/Pending.astro';
 import PlaceMap from '../components/PlaceMap.astro';
+import ProjectTile from '../components/ProjectTile.astro';
 import Prose from '../components/Prose.astro';
 import YouTube from '../components/YouTube.astro';
-import { href, localizeObject, localizeProject, objectAnchor, preview, projectObjectStatus, type ObjectEntry, type Project } from '../lib/content.ts';
+import { getObjects, getProjects, href, localizeObject, localizeProject, objectAnchor, objectsOfProject, preview, projectObjectStatus, type ObjectEntry, type Project } from '../lib/content.ts';
 import { mapStrings } from '../lib/map.ts';
 import { uiFor, type Lang } from '../lib/ui.ts';
 
@@ -67,6 +68,17 @@ const process = main ? images.slice(1) : images;
 const processColumns = Math.min(6, Math.max(3, process.length));
 const day = `daynight-${data.id}`;
 // «Back» returns to LOST, FOUND or the map, whichever the visitor came from (see the script below); FOUND without script.
+
+// The studio's other projects, listed as on FOUND (outside the preview, only projects FOUND lists).
+const allObjects = await getObjects();
+const studioTiles = data.studio ? (await getProjects())
+  .filter((other) => other.data.studio === data.studio && other.data.id !== data.id)
+  .map((other) => {
+    const { owned: otherOwned, claimed: otherClaimed } = objectsOfProject(allObjects, other.data.id);
+    const otherStatus = projectObjectStatus(other, otherOwned, otherClaimed);
+    return { project: other, status: otherStatus, cutout: otherStatus === 'certain' ? otherOwned[0]?.object : undefined };
+  })
+  .filter((tile) => tile.cutout || preview) : [];
 const backTo = { lost: { href: href('', lang), label: ui.allObjects }, place: { href: href('pokr-ayrum/', lang), label: mapStrings[lang].map } };
 ---
 <Base title={title} section="found" sectionIndex={false} description={`${title}. ${ui.team}: ${team ?? ui.pendingName}`}>
@@ -193,6 +205,19 @@ const backTo = { lost: { href: href('', lang), label: ui.allObjects }, place: { 
               <a class="zoomable" href={photo.large} aria-label={ui.openPhoto}>
                 <Image src={photo.src} alt={photo.alt} widths={[320, 640]} sizes="(min-width: 900px) 16vw, 45vw" format="webp" />
               </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    {studioTiles.length > 0 && (
+      <section class="project-related" aria-labelledby="project-related">
+        <h2 id="project-related">{ui.moreFromStudio}</h2>
+        <ul class="catalogue project-related-list">
+          {studioTiles.map(({ project: other, status: otherStatus, cutout }) => (
+            <li data-project-id={other.data.id} data-studio={other.data.studio}>
+              <ProjectTile lang={lang} project={other} status={otherStatus} cutout={cutout} sizes="(min-width: 720px) 240px, 42vw" />
             </li>
           ))}
         </ul>

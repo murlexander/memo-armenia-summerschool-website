@@ -1,9 +1,11 @@
 // Content queries with the publication gate applied. Pages read content only through here.
 import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
 import { isPreview } from './build-env.ts';
+import { filterOptions, type FilterKey } from './catalogue-filter.ts';
 import { objectStatus, type ObjectStatus } from './issues.ts';
 import { unquoteStatement } from './quotes.ts';
-import { defaultLang, langs, type Lang } from './ui.ts';
+import { mediumLabels, shiftLabels } from './media-kinds.ts';
+import { defaultLang, langs, uiFor, type Lang } from './ui.ts';
 
 export type Project = CollectionEntry<'projects'>;
 export type MuseumObject = CollectionEntry<'objects'>;
@@ -191,4 +193,36 @@ export async function projectPages() {
     .map((project) => ({ slug: project.data.slug, props: { project, ...objectsOfProject(objects, project.data.id) } }))
     // Outside the preview, a project without objects has no page (check-content fails published ones).
     .filter(({ props }) => props.owned.length > 0 || preview);
+}
+
+export type FilterGroup = {
+  key: FilterKey;
+  label: string;
+  options: { value: string; label: string }[];
+};
+
+/**
+ * The FOUND filter groups for the listed projects: studio, medium and shift, each with only the values that occur
+ * and only when it has at least two (in English and Armenian, studios only once all their names are translated). Option values match the catalogue entries' data-studio (the Russian studio
+ * name), data-medium (keys) and data-shift attributes.
+ */
+export async function catalogueFilterGroups(projects: Project[], lang: Lang): Promise<FilterGroup[]> {
+  const ui = uiFor(lang);
+  const options = filterOptions(projects.map(({ data }) => data));
+  const studioLabel = async (studio: string): Promise<string | null> => {
+    if (lang === defaultLang) return studio;
+    // A studio is named in each of its projects' translations; the first project that has one names it.
+    for (const project of projects.filter(({ data }) => data.studio === studio)) {
+      const own = (await getEntry('projectTranslations', `${project.data.id}/${lang}`))?.data.studio;
+      if (own) return own;
+    }
+    return null;
+  };
+  const groups: { key: FilterKey; label: string; options: { value: string; label: string | null }[] }[] = [
+    { key: 'studio', label: ui.filterStudio, options: await Promise.all(options.studio.map(async (studio) => ({ value: studio, label: await studioLabel(studio) }))) },
+    { key: 'medium', label: ui.filterMedium, options: options.medium.map((medium) => ({ value: medium, label: mediumLabels[medium][lang] })) },
+    { key: 'shift', label: ui.filterShift, options: options.shift.map((shift) => ({ value: String(shift), label: shiftLabels[lang](shift) })) },
+  ];
+  // A studio row of identical placeholders cannot be used; it waits until every studio name is translated.
+  return groups.filter((group): group is FilterGroup => group.options.length > 0 && group.options.every((option) => option.label !== null));
 }

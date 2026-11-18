@@ -2,6 +2,7 @@
 // The image schema is injected: Astro's image() in the site, a plain path string in the checks.
 import { z } from 'astro/zod';
 import { objectIssueCodes, objectStatuses, projectIssueCodes, uncertainFields } from './issues.ts';
+import { mediums, shifts } from './media-kinds.ts';
 
 const nonEmpty = z.string().trim().min(1);
 const asciiId = (prefix: string) => z.string().regex(new RegExp(`^${prefix}[0-9]+$`), `must look like ${prefix}001`);
@@ -47,6 +48,11 @@ export function projectSchema<I extends z.ZodType>(image: () => I) {
       published: z.boolean().default(false),
       title: nonEmpty,
       studio: z.string().optional(),
+      /** What the project is (film, zine, mosaic…), keys from media-kinds.ts; may differ from what its studio suggests. */
+      medium: z.array(z.enum(mediums)).default([])
+        .refine((list) => new Set(list).size === list.length, { message: 'lists a medium twice' }),
+      /** The camp shift (смена) the project was made in. */
+      shift: z.literal(shifts).optional(),
       team: z.array(z.string()).default([]),
       materials: z.string().default(''),
       tags: z.array(z.string()).default([]),

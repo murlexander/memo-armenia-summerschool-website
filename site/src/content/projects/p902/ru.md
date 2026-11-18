@@ -3,6 +3,7 @@ id: p902
 slug: primer-proekta-2
 published: true
 title: "Пример проекта 2"
+medium: ["film"]
 team: ["Участник В."]
 materials: "Вымышленный пример: латунная пуговица."
 tags: []

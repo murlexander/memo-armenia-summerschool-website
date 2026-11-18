@@ -1,8 +1,8 @@
 ---
-import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
-import Pending from '../components/Pending.astro';
-import { getLocalSite, getObjects, getProjects, localizeProject, objectsOfProject, preview, projectHref, projectObjectStatus } from '../lib/content.ts';
+import CatalogueFilters from '../components/CatalogueFilters.astro';
+import ProjectTile from '../components/ProjectTile.astro';
+import { getLocalSite, getObjects, getProjects, objectsOfProject, preview, projectObjectStatus } from '../lib/content.ts';
 import { uiFor, type Lang } from '../lib/ui.ts';
 
 interface Props {
@@ -14,17 +14,13 @@ const ui = uiFor(lang);
 const site = await getLocalSite(lang);
 const projects = await getProjects();
 const objects = await getObjects();
-const tiles = (await Promise.all(projects.map(async (project) => {
-  const { owned, claimed } = objectsOfProject(objects, project.data.id);
-  const status = projectObjectStatus(project, owned, claimed);
-  return {
-    project,
-    text: await localizeProject(project, lang),
-    status,
+const tiles = projects
+  .map((project) => {
+    const { owned, claimed } = objectsOfProject(objects, project.data.id);
+    const status = projectObjectStatus(project, owned, claimed);
     // One project, one object: the cut-out only when it is settled; otherwise a grey or red circle.
-    cutout: status === 'certain' ? owned[0]?.object : undefined,
-  };
-})))
+    return { project, status, cutout: status === 'certain' ? owned[0]?.object : undefined };
+  })
   // Outside the preview, projects without objects are never listed (check-content fails published ones).
   .filter((tile) => tile.cutout || preview);
 ---
@@ -36,28 +32,16 @@ const tiles = (await Promise.all(projects.map(async (project) => {
       <p class="page-sub">{ui.catalogue}</p>
     </header>
     {tiles.length === 0 ? <p>{ui.catalogueEmpty}</p> : (
+      <>
+      <CatalogueFilters projects={tiles.map(({ project }) => project)} lang={lang} />
       <ul class="catalogue">
-        {tiles.map(({ project, text, status, cutout }) => (
-          <li>
-            <a class="catalogue-tile" href={projectHref(project.data.slug, lang)}>
-              {cutout ? (
-                <span class="catalogue-image">
-                  <Image src={cutout.data.image} alt="" widths={[240, 480]} sizes="(min-width: 720px) 240px, 45vw" format="webp" loading="lazy" />
-                </span>
-              ) : (
-                <span class="catalogue-image" title={status === 'unknown' ? ui.noObject : ui.objectUncertain}>
-                  <span class="project-circle" data-kind={status} aria-hidden="true"></span>
-                  <span class="visually-hidden">{status === 'unknown' ? ui.noObject : ui.objectUncertain}</span>
-                </span>
-              )}
-              <span class="catalogue-title">{text.title ?? <Pending text={ui.pendingTitle} />}</span>
-              {text.team.length > 0 && (
-                <span class="catalogue-team">{text.team.some((name) => name === null) ? <Pending text={ui.pendingName} /> : text.team.join(', ')}</span>
-              )}
-            </a>
+        {tiles.map(({ project, status, cutout }) => (
+          <li data-project-id={project.data.id} data-studio={project.data.studio} data-medium={project.data.medium.join(' ')} data-shift={project.data.shift}>
+            <ProjectTile lang={lang} project={project} status={status} cutout={cutout} />
           </li>
         ))}
       </ul>
+      </>
     )}
   </div>
 </Base>

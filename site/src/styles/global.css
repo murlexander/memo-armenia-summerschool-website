@@ -233,6 +233,10 @@ html.js .object-field[data-ready="false"] { opacity: 0; animation: field-reveal 
 .catalogue-image { display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); place-items: center; aspect-ratio: 1; padding: 12%; background: var(--paper-light); border-radius: 1.2rem; }
 .catalogue-image img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 12px 9px rgb(47 35 23 / 16%)); transition: transform 190ms cubic-bezier(.2,.78,.2,1); }
 .catalogue-tile:hover .catalogue-image img, .catalogue-tile:focus-visible .catalogue-image img { transform: rotate(-2deg) scale(1.04); }
+/* A photo of the project fills the box, cropped square; the box clips its slight zoom on hover. */
+.catalogue-photo { padding: 0; overflow: hidden; }
+.catalogue-photo img { object-fit: cover; filter: none; }
+.catalogue-tile:hover .catalogue-photo img, .catalogue-tile:focus-visible .catalogue-photo img { transform: scale(1.03); }
 .project-circle { display: block; width: 62%; aspect-ratio: 1; border-radius: 50%; background: var(--circle-uncertain); box-shadow: 0 12px 16px rgb(47 35 23 / 12%); }
 .catalogue-title { margin-top: .5rem; font-size: 1.15rem; font-weight: 650; line-height: 1.25; }
 .catalogue-tile:hover .catalogue-title { text-decoration: underline; }
@@ -303,6 +307,19 @@ html.js .object-field[data-ready="false"] { opacity: 0; animation: field-reveal 
 .process-row img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: .4rem; transition: transform 190ms cubic-bezier(.2,.78,.2,1); }
 .process-row a:hover img { transform: scale(1.02); }
 @media (min-width: 700px) { .process-row { grid-template-columns: repeat(var(--columns, 4), minmax(0, 1fr)); } }
+/* The studio's other projects: FOUND's tiles; on phones one row that scrolls sideways to the screen edges. */
+.project-related { margin-top: clamp(4rem, 10vw, 7rem); }
+.project-related h2 { font-size: clamp(1.5rem, 3vw, 2.2rem); margin: 0; }
+.project-related-list { grid-template-columns: repeat(auto-fill, minmax(min(100%, clamp(9rem, 14vw, 12rem)), 1fr)); gap: 1.5rem; margin-top: clamp(1.25rem, 3vw, 2rem); }
+@media (max-width: 719px) {
+  .project-related-list {
+    grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: min(42%, 12rem); gap: 1rem;
+    margin-inline: calc(-1 * var(--gutter)); padding: .4rem var(--gutter) .5rem; /* room for the focus ring */ scroll-padding-inline: var(--gutter);
+    overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none;
+  }
+  .project-related-list::-webkit-scrollbar { display: none; }
+  .project-related-list > li { scroll-snap-align: start; }
+}
 @media (min-width: 900px) {
   .project-row { grid-template-columns: minmax(0, min(40rem, 55%)) minmax(0, 1fr); column-gap: clamp(2rem, 6vw, 7rem); align-items: start; }
   .project-intro { grid-template-areas: "main where" "objects where"; grid-template-rows: auto 1fr; }
@@ -589,4 +606,40 @@ a.pm-item:hover .pm-name, .place-map-list > li[data-active] .pm-name { text-deco
 }
 @media (prefers-reduced-motion: reduce) {
   .pm-dot, .place-map-list > li::before { transition: none; }
+}
+
+/* FOUND filter (CatalogueFilters.astro): chips by studio, medium and shift above the catalogue. Unlike the home
+   keywords these are buttons: pill-shaped, a 48px target, pressed in ink like the language switch. Each group is a
+   row: its label on the left on wide screens, above it on phones, where a row scrolls sideways to the screen edges. */
+.found-filters { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: .5rem 1.5rem; margin: clamp(1.5rem, 4vw, 2.5rem) 0 0; }
+.found-filters[hidden], .filter-reset[hidden] { display: none; }
+.filter-group { display: grid; grid-column: 1 / -1; grid-template-columns: subgrid; align-items: start; }
+.filter-group-label { color: var(--muted); font-size: .8rem; letter-spacing: .08em; line-height: 48px; text-transform: uppercase; }
+.filter-chips { display: flex; flex-wrap: wrap; gap: .5rem; }
+.filter-chip {
+  display: inline-flex; align-items: center; min-height: 48px; padding: 0 1.05rem;
+  border: 1.5px solid var(--line); border-radius: 999px; background: var(--paper-light); color: var(--ink);
+  font: inherit; font-size: .95rem; line-height: 1.2; white-space: nowrap; cursor: pointer;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+.filter-chip:hover:not([aria-pressed="true"]) { border-color: var(--ink); }
+.filter-chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.filter-chip:focus-visible, .filter-reset:focus-visible { outline: 3px solid var(--lichen); outline-offset: 2px; }
+.filter-status { grid-column: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 0 1rem; min-height: 48px; margin: 0; color: var(--muted); font-size: .95rem; }
+.filter-reset { min-height: 48px; padding: 0; border: 0; background: none; color: var(--ink); font: inherit; text-decoration: underline; text-underline-offset: .2em; cursor: pointer; }
+.found-filters ~ ul > li[hidden] { display: none !important; }
+@media (max-width: 719px) {
+  .found-filters { grid-template-columns: minmax(0, 1fr); gap: .75rem; }
+  .filter-group { gap: .1rem; }
+  .filter-group-label { line-height: 1.4; }
+  .filter-status { grid-column: 1; }
+  /* One row per group that runs off both screen edges and scrolls; the padding keeps focus rings visible. */
+  .filter-chips {
+    flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none;
+    margin: 0 calc(-1 * var(--gutter)); padding: 5px var(--gutter); scroll-padding-inline: var(--gutter);
+  }
+  .filter-chips::-webkit-scrollbar { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .filter-chip { transition: none; }
 }

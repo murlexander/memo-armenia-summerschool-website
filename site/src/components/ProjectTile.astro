@@ -1,0 +1,48 @@
+---
+// One project in a grid of projects (FOUND, «Другие проекты студии»): a photo of the project itself, its title and
+// team. Films show their video's poster. Without any photo, the tile falls back to the project's object: the
+// cut-out when settled, otherwise the grey or red circle.
+import { Image } from 'astro:assets';
+import Pending from './Pending.astro';
+import { localizeProject, projectHref, type MuseumObject, type Project } from '../lib/content.ts';
+import type { ObjectStatus } from '../lib/issues.ts';
+import { uiFor, type Lang } from '../lib/ui.ts';
+
+interface Props {
+  lang: Lang;
+  project: Project;
+  status: ObjectStatus;
+  /** The project's object when it is settled. */
+  cutout?: MuseumObject;
+  sizes?: string;
+}
+
+const { lang, project, status, cutout, sizes = '(min-width: 720px) 240px, 45vw' } = Astro.props;
+const ui = uiFor(lang);
+const text = await localizeProject(project, lang);
+const { media, studio } = project.data;
+const video = media.find((item) => item.type === 'youtube');
+const image = media.find((item) => item.type === 'image');
+// The film studio's main piece is its video, so its poster leads; everyone else's first photo does.
+const photo = studio === 'Кино' && video ? video.poster : image?.src ?? video?.poster;
+---
+<a class="catalogue-tile" href={projectHref(project.data.slug, lang)}>
+  {photo ? (
+    <span class="catalogue-image catalogue-photo">
+      <Image src={photo} alt="" widths={[240, 480, 720]} sizes={sizes} format="webp" loading="lazy" />
+    </span>
+  ) : cutout ? (
+    <span class="catalogue-image">
+      <Image src={cutout.data.image} alt="" widths={[240, 480]} sizes={sizes} format="webp" loading="lazy" />
+    </span>
+  ) : (
+    <span class="catalogue-image" title={status === 'unknown' ? ui.noObject : ui.objectUncertain}>
+      <span class="project-circle" data-kind={status} aria-hidden="true"></span>
+      <span class="visually-hidden">{status === 'unknown' ? ui.noObject : ui.objectUncertain}</span>
+    </span>
+  )}
+  <span class="catalogue-title">{text.title ?? <Pending text={ui.pendingTitle} />}</span>
+  {text.team.length > 0 && (
+    <span class="catalogue-team">{text.team.some((name) => name === null) ? <Pending text={ui.pendingName} /> : text.team.join(', ')}</span>
+  )}
+</a>

@@ -1,0 +1,129 @@
+---
+// FOUND filter: chips by studio, medium and shift above the catalogue. A group shows only values that occur among
+// the listed projects, and only when it has at least two. Chips toggle (OR within a group, AND across groups) and
+// hide the non-matching `ul.catalogue > li`, which carry data-studio (the Russian studio name), data-medium
+// (space-separated keys) and data-shift. The choice lives in the URL query, so a filtered view can be shared and
+// Back returns to it. Without JavaScript the bar stays hidden and every project shows.
+import { catalogueFilterGroups, type Project } from '../lib/content.ts';
+import { uiFor, type Lang } from '../lib/ui.ts';
+
+interface Props {
+  /** The projects the catalogue lists. */
+  projects: Project[];
+  lang: Lang;
+}
+
+const { projects, lang } = Astro.props;
+const ui = uiFor(lang);
+const groups = await catalogueFilterGroups(projects, lang);
+---
+{groups.length > 0 && (
+  <section class="found-filters" aria-label={ui.filters} data-found-filters data-count-text={ui.filterCount} data-none-text={ui.filterNone} data-total-text={ui.filterTotal} hidden>
+    {groups.map((group) => (
+      <div class="filter-group" role="group" aria-labelledby={`filter-${group.key}`}>
+        <span class="filter-group-label" id={`filter-${group.key}`}>{group.label}</span>
+        <div class="filter-chips" data-filter-group={group.key}>
+          <button type="button" class="filter-chip" data-filter-all aria-pressed="true">{ui.filterAll}</button>
+          {group.options.map((option) => (
+            <button type="button" class="filter-chip" data-value={option.value} aria-pressed="false">
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    ))}
+    <p class="filter-status">
+      <span aria-live="polite" data-filter-count></span>
+      <button type="button" class="filter-reset" data-filter-reset hidden>{ui.filterReset}</button>
+    </p>
+  </section>
+)}
+
+<script>
+  import { emptyFilter, filterKeys, filterQuery, matchesFilter, parseFilterQuery, type FilterKey, type FilterState } from '../lib/catalogue-filter.ts';
+
+  const root = document.querySelector<HTMLElement>('[data-found-filters]');
+  const items = [...document.querySelectorAll<HTMLLIElement>('ul.catalogue > li')];
+  if (root && items.length > 0) {
+    const chipGroups = new Map<FilterKey, HTMLElement>();
+    for (const key of filterKeys) {
+      const group = root.querySelector<HTMLElement>(`[data-filter-group="${key}"]`);
+      if (group) chipGroups.set(key, group);
+    }
+    const valueChips = (key: FilterKey) => [...(chipGroups.get(key)?.querySelectorAll<HTMLButtonElement>('[data-value]') ?? [])];
+    const offered = emptyFilter();
+    for (const key of filterKeys) offered[key] = valueChips(key).map((chip) => chip.dataset.value ?? '');
+
+    const words = (value: string | undefined) => (value ?? '').split(' ').filter(Boolean);
+    const facets = items.map((item) => ({
+      item,
+      facets: { studio: item.dataset.studio ? [item.dataset.studio] : [], medium: words(item.dataset.medium), shift: words(item.dataset.shift) },
+    }));
+    const count = root.querySelector<HTMLElement>('[data-filter-count]')!;
+    const reset = root.querySelector<HTMLButtonElement>('[data-filter-reset]')!;
+    const countText = root.dataset.countText ?? '{shown} / {total}';
+    const noneText = root.dataset.noneText ?? '';
+    const totalText = root.dataset.totalText ?? '{total}';
+
+    // On phones a group is a sideways-scrolling row: bring its first chosen chip into view.
+    const reveal = (group: HTMLElement) => {
+      const chip = group.querySelector<HTMLElement>('[data-value][aria-pressed="true"]');
+      if (!chip || group.scrollWidth <= group.clientWidth) return;
+      const row = group.getBoundingClientRect();
+      const box = chip.getBoundingClientRect();
+      const inset = parseFloat(getComputedStyle(group).paddingLeft) || 0;
+      if (box.left < row.left + inset || box.right > row.right - inset) group.scrollLeft += box.left - row.left - inset;
+    };
+
+    let state: FilterState = parseFilterQuery(location.search, offered);
+
+    const apply = () => {
+      let shown = 0;
+      for (const { item, facets: own } of facets) {
+        const match = matchesFilter(own, state);
+        item.hidden = !match;
+        if (match) shown += 1;
+      }
+      for (const [key, group] of chipGroups) {
+        group.querySelector('[data-filter-all]')?.setAttribute('aria-pressed', String(state[key].length === 0));
+        for (const chip of valueChips(key)) chip.setAttribute('aria-pressed', String(state[key].includes(chip.dataset.value ?? '')));
+      }
+      const filtered = filterKeys.some((key) => state[key].length > 0);
+      const total = String(items.length);
+      count.textContent = !filtered ? totalText.replace('{total}', total)
+        : shown === 0 ? noneText
+        : countText.replace('{shown}', String(shown)).replace('{total}', total);
+      reset.hidden = !filtered;
+      // Replace, not push: the address always describes the view, and Back from a project returns to it.
+      history.replaceState(history.state, '', `${location.pathname}${filterQuery(state, location.search)}${location.hash}`);
+    };
+
+    root.addEventListener('click', (event) => {
+      if (!(event.target instanceof Element)) return;
+      const button = event.target.closest<HTMLButtonElement>('button');
+      if (!button || !root.contains(button)) return;
+      if (button.hasAttribute('data-filter-reset')) {
+        state = emptyFilter();
+        apply();
+        // The reset button hides itself; keep the keyboard nearby.
+        chipGroups.values().next().value?.querySelector<HTMLButtonElement>('[data-filter-all]')?.focus();
+        return;
+      }
+      const key = button.closest<HTMLElement>('[data-filter-group]')?.dataset.filterGroup as FilterKey | undefined;
+      if (!key) return;
+      if (button.hasAttribute('data-filter-all')) {
+        state = { ...state, [key]: [] };
+      } else {
+        const value = button.dataset.value ?? '';
+        const chosen = state[key].includes(value) ? state[key].filter((other) => other !== value) : [...state[key], value];
+        // Keep the page's order, whatever order the chips were pressed in.
+        state = { ...state, [key]: offered[key].filter((other) => chosen.includes(other)) };
+      }
+      apply();
+    });
+
+    root.hidden = false;
+    apply();
+    for (const group of chipGroups.values()) reveal(group);
+  }
+</script>

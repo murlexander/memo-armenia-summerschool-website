@@ -106,3 +106,13 @@ test('missing media files and longread alt text fail', async () => {
   hasError(result.errors, /YouTube poster not found/);
   hasError(result.errors, /Figure without alt text/);
 });
+
+test('a medium must come from the vocabulary, and a shift must be 1 or 2', async () => {
+  const result = await check((dir) => edit(dir, 'projects/p901/ru.md', (text) => text
+    .replace('medium: ["mosaic"]', 'medium: ["mosaic", "pottery"]\nshift: 3')));
+  hasError(result.errors, /p901\/ru\.md: medium\.1: /);
+  hasError(result.errors, /shift: /);
+  const unpublished = await check((dir) => edit(dir, 'projects/p901/ru.md', (text) => text
+    .replace('published: true', 'published: false').replace('medium: ["mosaic"]', 'medium: ["mosaic", "mosaic"]')));
+  hasError(unpublished.errors, /lists a medium twice/);
+});

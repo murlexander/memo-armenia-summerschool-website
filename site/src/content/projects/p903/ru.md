@@ -4,6 +4,7 @@ slug: primer-proekta-3
 published: true
 title: "Пример проекта 3"
 studio: "Пример студии"
+medium: ["zine", "installation"]
 team: ["Участница Г.", "Участник Д.", "Участница Е."]
 materials: "Вымышленный пример: сухой лист и обрывок ленты."
 tags: []

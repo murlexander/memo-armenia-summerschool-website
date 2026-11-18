@@ -4,6 +4,7 @@ slug: primer-proekta-1
 published: true
 title: "Пример проекта 1"
 studio: "Пример студии"
+medium: ["mosaic"]
 team: ["Участник А.", "Участница Б."]
 materials: "Вымышленный пример: синий камешек и глиняный черепок."
 tags: []
