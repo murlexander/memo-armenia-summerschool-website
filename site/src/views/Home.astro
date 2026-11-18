@@ -40,7 +40,9 @@ const hideInstruction = variants
     ))}
     {variants.some((variant) => variant.keywords && variant.keywords.length > 1) && (
       <script is:inline>
-        // A new order of keywords on every visit.
+        // A new order of keywords on every visit. The list stays for screen readers; on screen the keywords run in rows
+        // that are cut by both screen edges: each row starts a little off-screen to the left and ends in a word cut by
+        // the right edge, and the last row continues from the start of the list, so no row ends short.
         for (const list of document.querySelectorAll('.home-keywords[data-shuffle]')) {
           const items = [...list.children];
           for (let i = items.length - 1; i > 0; i -= 1) {
@@ -48,6 +50,114 @@ const hideInstruction = variants
             [items[i], items[j]] = [items[j], items[i]];
           }
           list.replaceChildren(...items.flatMap((item, i) => (i ? [' ', item] : [item])));
+
+          const words = items.map((item) => item.textContent.trim());
+          const n = words.length;
+          const separator = '\u00a0·\u00a0';
+          const rows = document.createElement('div');
+          rows.className = 'home-keyword-rows';
+          rows.setAttribute('aria-hidden', 'true');
+          list.after(rows);
+          list.classList.add('visually-hidden');
+          const seeds = [];
+          let built = '';
+
+          const span = (text) => {
+            const element = document.createElement('span');
+            element.textContent = text;
+            return element;
+          };
+          const build = () => {
+            const width = rows.getBoundingClientRect().width;
+            if (!width) return; // the variant is hidden; build when it is shown
+            const probe = document.createElement('div');
+            probe.className = 'home-keyword-row';
+            probe.style.cssText = 'position:absolute;visibility:hidden';
+            probe.append(span(separator), ...words.map(span));
+            rows.append(probe);
+            const em = parseFloat(getComputedStyle(probe).fontSize);
+            const [gap, ...sizes] = [...probe.children].map((element) => element.getBoundingClientRect().width);
+            // Where the letters of each keyword run, between the spaces inside it: the edge must cut letters.
+            const range = document.createRange();
+            const runs = [...probe.children].slice(1).map((element, k) => {
+              const text = element.firstChild;
+              const left = element.getBoundingClientRect().left;
+              const found = [];
+              let from = 0;
+              for (let i = text.data.indexOf(' '); i >= 0; i = text.data.indexOf(' ', i + 1)) {
+                range.setStart(text, i);
+                range.setEnd(text, i + 1);
+                const space = range.getBoundingClientRect();
+                found.push([from, space.left - left]);
+                from = space.right - left;
+              }
+              found.push([from, sizes[k]]);
+              return found;
+            });
+            probe.remove();
+            const key = `${width}|${sizes.join()}`;
+            if (key === built) return;
+            built = key;
+
+            // Whether position `at` in word `k` falls on its letters, at least `margin` from their ends.
+            const onLetters = (k, at, margin) => runs[k % n].some(([start, end]) => {
+              const m = Math.min(margin, (end - start) / 3);
+              return start + m <= at && at <= end - m;
+            });
+            // The index of the word whose letters the right edge cuts when a row starting with word `first` is moved
+            // left by `shift`; -1 if either edge falls between words or letters.
+            const cutAt = (first, shift, margin) => {
+              if (!onLetters(first, shift, margin)) return -1;
+              let x = -shift;
+              for (let k = first; ; k += 1) {
+                const size = sizes[k % n];
+                if (x > width) return -1;
+                if (x + size >= width) return onLetters(k, width - x, margin) ? k : -1;
+                x += size + gap;
+              }
+            };
+            const lines = [];
+            for (let first = 0, row = 0; first < n; row += 1) {
+              const size = sizes[first % n];
+              // The first word loses .4–2.2em to the left edge, at most 45% of it; if then no word falls under the
+              // right edge, it may lose more (keeping .6em in view), and then the right cut may come closer to a space.
+              const least = .4 * em;
+              const most = Math.max(least, Math.min(2.2 * em, .45 * size));
+              const furthest = Math.max(most, Math.min(3 * em, size - .6 * em));
+              seeds[row] ??= Math.random();
+              const wanted = least + seeds[row] * (most - least);
+              let best = { shift: wanted, last: -1 };
+              for (const [high, margin] of [[most, .35 * em], [furthest, .35 * em], [furthest, .1 * em]]) {
+                for (let shift = least; shift <= high + .5; shift += 1) {
+                  const last = cutAt(first, shift, margin);
+                  if (last >= 0 && (best.last < 0 || Math.abs(shift - wanted) < Math.abs(best.shift - wanted))) best = { shift, last };
+                }
+                if (best.last >= 0) break;
+              }
+              if (best.last < 0) {
+                // Nothing fits (a very short row): run past the edge with the words that start before it, and one more.
+                let x = -best.shift;
+                best.last = first;
+                while (x + sizes[best.last % n] < width) x += sizes[best.last++ % n] + gap;
+              }
+              const line = document.createElement('div');
+              line.className = 'home-keyword-row';
+              line.style.marginLeft = `${-best.shift}px`;
+              const shown = [];
+              for (let k = first; k <= best.last; k += 1) shown.push(words[k % n]);
+              line.textContent = shown.join(separator);
+              lines.push(line);
+              first = best.last + 1;
+            }
+            rows.replaceChildren(...lines);
+          };
+          build();
+          // Rebuild when the width changes (not the height, so iOS toolbars don't move the words), when a variant is
+          // switched in, and when the font arrives. The order stays the same for the visit.
+          const lead = list.parentElement.querySelector('.home-lead');
+          if (lead && window.ResizeObserver) new ResizeObserver(build).observe(lead);
+          document.fonts?.addEventListener('loadingdone', build);
+          document.fonts?.ready.then(build);
         }
       </script>
     )}

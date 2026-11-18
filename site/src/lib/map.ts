@@ -153,7 +153,10 @@ export function layoutPlaces(map: Pick<MapData, 'places'> & { base: { frame: Box
 }
 
 type MapStrings = {
+  /** Heading of the map section. */
   title: string;
+  /** The map by its full name, where «Места» alone would be unclear (the project page's back link, the drawing's label). */
+  map: string;
   projects: string;
   notes: string;
   where: string;
@@ -167,8 +170,9 @@ type MapStrings = {
 /** Interface strings for the map, in each language. */
 export const mapStrings: Record<Lang, MapStrings> = {
   ru: {
-    title: 'Карта мест',
-    projects: 'Места',
+    title: 'Места',
+    map: 'Карта мест',
+    projects: 'Проекты',
     notes: 'Заметки о деревне',
     where: 'Где это',
     allPlaces: 'Все места на карте',
@@ -177,8 +181,9 @@ export const mapStrings: Record<Lang, MapStrings> = {
     outside: { north: 'км к северу', south: 'км к югу', east: 'км к востоку', west: 'км к западу' },
   },
   en: {
-    title: 'Map of places',
-    projects: 'Places',
+    title: 'Places',
+    map: 'Map of places',
+    projects: 'Projects',
     notes: 'Village notes',
     where: 'Where it is',
     allPlaces: 'All places on the map',
@@ -187,8 +192,9 @@ export const mapStrings: Record<Lang, MapStrings> = {
     outside: { north: 'km north', south: 'km south', east: 'km east', west: 'km west' },
   },
   hy: {
-    title: 'Վայրերի քարտեզ',
-    projects: 'Վայրեր',
+    title: 'Վայրեր',
+    map: 'Վայրերի քարտեզ',
+    projects: 'Նախագծեր',
     notes: 'Նշումներ գյուղի մասին',
     where: 'Որտեղ է',
     allPlaces: 'Բոլոր վայրերը քարտեզի վրա',

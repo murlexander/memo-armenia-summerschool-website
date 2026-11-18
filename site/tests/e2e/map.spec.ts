@@ -26,3 +26,33 @@ for (const lang of ['', 'en/']) {
     expect(overflow).toBeLessThanOrEqual(0);
   });
 }
+
+for (const lang of ['', 'en/']) {
+  test(`a marker on /${lang}pokr-ayrum/ leads to its row in the list`, async ({ page }) => {
+    await page.goto(`${base}${lang}pokr-ayrum/`);
+    const map = page.locator('#map');
+    const url = page.url();
+    const sticky = await map.locator('.place-map-main').evaluate((element) => getComputedStyle(element).position === 'sticky');
+
+    // Clicking scrolls to the row and highlights it, without leaving the page; a wide screen keeps the drawing in view.
+    const last = map.locator('.pm-marker').last();
+    const id = await last.getAttribute('data-place');
+    await last.click();
+    const row = map.locator(`#place-${id}`);
+    await expect(row).toHaveAttribute('data-active', '');
+    await expect(row).toBeInViewport();
+    if (sticky) await expect(map.locator('.place-map-figure')).toBeInViewport({ ratio: 1 });
+    expect(page.url()).toBe(url);
+
+    // Enter on a focused marker does the same and moves focus to the row.
+    const first = map.locator('.pm-marker').first();
+    const firstId = await first.getAttribute('data-place');
+    await first.focus();
+    await page.keyboard.press('Enter');
+    const firstRow = map.locator(`#place-${firstId}`);
+    await expect(firstRow).toHaveAttribute('data-active', '');
+    await expect(firstRow).toBeInViewport();
+    expect(await page.evaluate((rowId) => document.getElementById(rowId)?.contains(document.activeElement), `place-${firstId}`)).toBe(true);
+    expect(page.url()).toBe(url);
+  });
+}

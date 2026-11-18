@@ -1,7 +1,7 @@
 ---
 // Map of places, drawn as a static SVG from map.yaml and map-base.json (no tiles, no third-party requests).
-// mode="full": the whole village with numbered markers and a list of places (the list is what keyboard and
-// screen-reader users navigate; the drawing repeats it for the eye and the mouse).
+// mode="full": the whole village with numbered markers and a list of places. Each marker is an in-page link to its
+// row in the list (the row holds the project links); the script scrolls there smoothly and highlights the row.
 // mode="project": a small «where is it» map around one project's places, leading to the full map; renders nothing
 // if it has none.
 import { getEntry } from 'astro:content';
@@ -84,20 +84,25 @@ const small = map && mode === 'project' && projectId ? (() => {
 const russian = lang === defaultLang;
 const projectPlaces = full?.places.filter((place) => place.kind === 'project') ?? [];
 const notePlaces = full?.places.filter((place) => place.kind !== 'project') ?? [];
+// Names without Cyrillic (Green Camp) read the same in every language; others wait for a translation.
+const nameOf = (place: { name: string }) => (russian || !/[а-яё]/i.test(place.name) ? place.name : null);
+const rowId = (id: string) => `place-${id}`;
 const r1 = (value: number) => Math.round(value * 10) / 10;
 ---
 {full && (
   <section class="place-map" id="map" aria-labelledby="place-map-title" data-place-map>
-    <h2 id="place-map-title">{strings.title}</h2>
     <div class="place-map-layout">
+      {/* Wide screens: the title and the drawing stay in view together while the list scrolls. */}
+      <div class="place-map-main">
+      <h2 id="place-map-title">{strings.title}</h2>
       <figure class="place-map-figure" style={`--map-aspect: ${(full.width / full.height).toFixed(3)}`}>
         {/* Narrow screens: the drawing is wider than the screen and swipes sideways. */}
         <div class="place-map-scroll">
-        <svg class="place-map-svg" viewBox={`0 0 ${full.width} ${full.height}`} aria-hidden="true" focusable="false">
-          <g class="pm-base">
+        <svg class="place-map-svg" viewBox={`0 0 ${full.width} ${full.height}`} role="group" aria-label={strings.map}>
+          <g class="pm-base" aria-hidden="true">
             {full.base.map((feature) => <path class={`pm-${feature.kind}`} d={feature.d} />)}
           </g>
-          <g class="pm-leaders">
+          <g class="pm-leaders" aria-hidden="true">
             {full.places.filter((place) => !place.outside && Math.hypot(place.marker.x - place.anchor.x, place.marker.y - place.anchor.y) > radius * 0.6).map((place) => (
               <>
                 <line x1={r1(place.anchor.x)} y1={r1(place.anchor.y)} x2={r1(place.marker.x)} y2={r1(place.marker.y)} />
@@ -120,10 +125,8 @@ const r1 = (value: number) => Math.round(value * 10) / 10;
                   {place.number !== null && <text x={r1(x)} y={r1(y)} dy="0.35em">{place.number}</text>}
                 </>
               );
-              const kind = `pm-marker pm-${place.kind}${place.links.length ? ' pm-linked' : ''}`;
-              return place.links.length
-                ? <a class={kind} href={place.links[0].href} tabindex="-1" data-place={place.id}>{body}</a>
-                : <g class={kind} data-place={place.id}>{body}</g>;
+              const label = `${place.number !== null ? `${place.number}. ` : ''}${nameOf(place) ?? strings.placePending}`;
+              return <a class={`pm-marker pm-${place.kind}`} href={`#${rowId(place.id)}`} aria-label={label} data-place={place.id}>{body}</a>;
             })}
           </g>
         </svg>
@@ -131,6 +134,7 @@ const r1 = (value: number) => Math.round(value * 10) / 10;
         <p class="place-map-credit"><a href="https://www.openstreetmap.org/copyright">{map!.base.attribution}</a></p>
         <p class="place-map-tip" hidden></p>
       </figure>
+      </div>
 
       <div class="place-map-lists">
         {[{ heading: strings.projects, places: projectPlaces }, { heading: strings.notes, places: notePlaces }].map((group) => group.places.length > 0 && (
@@ -138,8 +142,7 @@ const r1 = (value: number) => Math.round(value * 10) / 10;
             <h3>{group.heading}</h3>
             <ol class="place-map-list">
               {group.places.map((place) => {
-                // Names without Cyrillic (Green Camp) read the same in every language.
-                const name = russian || !/[а-яё]/i.test(place.name) ? place.name : null;
+                const name = nameOf(place);
                 const label = (
                   <>
                     <span class={`pm-key pm-${place.kind}`} aria-hidden="true">{place.number ?? ''}</span>
@@ -153,10 +156,10 @@ const r1 = (value: number) => Math.round(value * 10) / 10;
                   </>
                 );
                 if (place.links.length === 1) {
-                  return <li data-place={place.id}><a class="pm-item" href={place.links[0].href}>{label}</a></li>;
+                  return <li id={rowId(place.id)} data-place={place.id}><a class="pm-item" href={place.links[0].href}>{label}</a></li>;
                 }
                 return (
-                  <li data-place={place.id}>
+                  <li id={rowId(place.id)} data-place={place.id}>
                     <div class="pm-item">{label}</div>
                     {place.links.length > 1 && (
                       <ul class="pm-links">
@@ -200,16 +203,24 @@ const r1 = (value: number) => Math.round(value * 10) / 10;
 )}
 
 <script>
-  // Progressive enhancement: pointing at a marker or a list entry highlights both and shows the name by the marker.
+  // Progressive enhancement: pointing at a marker or a list entry highlights both and shows the name by the marker;
+  // clicking a marker (or Enter on it) scrolls to its row and keeps both highlighted.
   for (const root of document.querySelectorAll<HTMLElement>('[data-place-map]')) {
+    const main = root.querySelector<HTMLElement>('.place-map-main');
     const figure = root.querySelector<HTMLElement>('.place-map-figure');
     const svg = root.querySelector<SVGSVGElement>('.place-map-svg');
     const tip = root.querySelector<HTMLElement>('.place-map-tip');
-    if (!figure || !svg || !tip) continue;
-    // Wide screens keep the drawing in view while the list scrolls; centre it vertically (CSS needs its height).
-    const half = () => root.style.setProperty('--map-half', `${figure.offsetHeight / 2}px`);
-    half();
-    new ResizeObserver(half).observe(figure);
+    if (!main || !figure || !svg || !tip) continue;
+    // Wide screens keep the title and the drawing in view while the list scrolls: centre them vertically and size
+    // the drawing to the screen below the title (CSS needs both heights).
+    const measure = () => {
+      root.style.setProperty('--map-half', `${main.offsetHeight / 2}px`);
+      root.style.setProperty('--map-head', `${main.offsetHeight - figure.offsetHeight}px`);
+    };
+    measure();
+    const resized = new ResizeObserver(measure);
+    resized.observe(main);
+    resized.observe(figure);
     // Where the drawing scrolls, start at its middle and let the keyboard scroll it too.
     const scroller = root.querySelector<HTMLElement>('.place-map-scroll');
     if (scroller && scroller.scrollWidth > scroller.clientWidth) {
@@ -220,19 +231,28 @@ const r1 = (value: number) => Math.round(value * 10) / 10;
       scroller.scrollLeft = middle - scroller.clientWidth / 2;
       scroller.tabIndex = 0;
       scroller.setAttribute('role', 'region');
-      scroller.setAttribute('aria-label', root.querySelector('h2')?.textContent ?? '');
+      scroller.setAttribute('aria-label', svg.getAttribute('aria-label') ?? '');
     }
-    let current: string | null = null;
-    const show = (id: string | null) => {
-      if (id === current) return;
-      current = id;
+    const rowOf = (id: string) => root.querySelector<HTMLElement>(`.place-map-list > li[data-place="${id}"]`);
+    // Highlighted: the place pointed at and the one last clicked; the name shows for the first, else the second.
+    let hovered: string | null = null;
+    let selected: string | null = null;
+    let current = '';
+    const render = () => {
+      const key = `${hovered} ${selected}`;
+      if (key === current) return;
+      current = key;
       for (const element of root.querySelectorAll('[data-active]')) element.removeAttribute('data-active');
+      for (const id of [hovered, selected]) {
+        if (!id) continue;
+        svg.querySelector(`.pm-marker[data-place="${id}"]`)?.setAttribute('data-active', '');
+        rowOf(id)?.setAttribute('data-active', '');
+      }
       tip.hidden = true;
+      const id = hovered ?? selected;
       if (!id) return;
       const marker = svg.querySelector<SVGGraphicsElement>(`.pm-marker[data-place="${id}"]`);
-      const item = root.querySelector<HTMLElement>(`.place-map-list > li[data-place="${id}"]`);
-      marker?.setAttribute('data-active', '');
-      item?.setAttribute('data-active', '');
+      const item = rowOf(id);
       const name = item?.querySelector('.pm-name')?.textContent?.trim();
       if (!marker || !name) return;
       const dot = marker.querySelector<SVGGraphicsElement>('.pm-dot')!.getBoundingClientRect();
@@ -243,10 +263,57 @@ const r1 = (value: number) => Math.round(value * 10) / 10;
       tip.style.top = `${dot.top - box.top}px`;
       tip.dataset.side = dot.left + dot.width / 2 - box.left > box.width / 2 ? 'left' : 'right';
     };
+    const show = (id: string | null) => {
+      hovered = id;
+      render();
+    };
     const placeOf = (target: EventTarget | null) => (target instanceof Element ? target.closest<HTMLElement | SVGElement>('[data-place]')?.dataset.place ?? null : null);
-    root.addEventListener('pointerover', (event) => show(placeOf(event.target)));
+    // While the page scrolls to a row, the rows passing under a still mouse don't count as pointed at.
+    let scrolling = false;
+    root.addEventListener('pointerover', (event) => {
+      if (!scrolling) show(placeOf(event.target));
+    });
     root.addEventListener('pointerleave', () => show(null));
     root.addEventListener('focusin', (event) => show(placeOf(event.target)));
     root.addEventListener('focusout', () => show(null));
+
+    // Bring a row into view: centred on the screen, but where the drawing stays in view (wide screens), only as
+    // far as keeps it fully in place.
+    const reveal = (item: HTMLElement) => {
+      const box = item.getBoundingClientRect();
+      const margin = 16;
+      if (box.top >= margin && box.bottom <= innerHeight - margin) return;
+      let top = scrollY + box.top + box.height / 2 - innerHeight / 2;
+      const style = getComputedStyle(main);
+      if (style.position === 'sticky') {
+        const layout = main.parentElement!.getBoundingClientRect();
+        const stuck = parseFloat(style.top) || 0;
+        top = Math.min(Math.max(top, scrollY + layout.top - stuck), scrollY + layout.bottom - stuck - main.offsetHeight);
+      }
+      scrolling = true;
+      const done = () => {
+        scrolling = false;
+      };
+      addEventListener('scrollend', done, { once: true });
+      setTimeout(done, 1500);
+      scrollTo({ top, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+    };
+    svg.addEventListener('click', (event) => {
+      const marker = event.target instanceof Element ? event.target.closest<SVGElement>('.pm-marker') : null;
+      const id = marker?.dataset.place;
+      const item = id ? rowOf(id) : null;
+      if (!id || !item) return;
+      event.preventDefault();
+      selected = id;
+      hovered = null;
+      render();
+      reveal(item);
+      // From the keyboard, move on to the row as an in-page link would: to its link, or to the row itself.
+      if (event.detail === 0) {
+        const target = item.querySelector<HTMLElement>('a') ?? item;
+        if (target === item) item.tabIndex = -1;
+        target.focus({ preventScroll: true });
+      }
+    });
   }
 </script>

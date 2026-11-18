@@ -110,20 +110,20 @@ html[lang="hy"] .title-menu { font-size: 13.6cqi; }
 .site-phrase { max-width: 52ch; margin: .6rem 0 0; color: var(--muted); font-size: clamp(.95rem, 1.4vw, 1.1rem); line-height: 1.45; }
 
 /* LOST (home) */
-.home-intro { display: grid; gap: .5rem; padding: clamp(1rem, 3vw, 2.5rem) var(--gutter) 0; }
+.home-intro { display: grid; grid-template-columns: minmax(0, 1fr); gap: .5rem; padding: clamp(1rem, 3vw, 2.5rem) var(--gutter) 0; }
 .home-variant { display: none; }
 html[data-home="1"] .home-variant[data-variant="1"],
 html[data-home="2"] .home-variant[data-variant="2"],
 html[data-home="3"] .home-variant[data-variant="3"] { display: block; }
-/* The lead runs the title's width and scales with it; on wide screens it is one line. The keywords are bigger,
-   shuffled on each visit and run slightly off the right edge of the screen; the instruction sits centred on its own line,
-   right above the objects. */
+/* The lead runs the title's width and scales with it; on wide screens it is one line. The keywords are shuffled on each
+   visit; with JavaScript they run in rows cut by both screen edges (Home.astro), without it the list wraps and runs off
+   the right edge. The instruction sits centred on its own line, right above the objects. */
 .home-intro { container-type: inline-size; overflow-x: clip; }
 .home-lead { margin: 0; font-size: clamp(1.25rem, 4.2vw, 2.5rem); line-height: 1.22; letter-spacing: -.01em; text-wrap: pretty; }
-.home-keywords {
-  margin: .9rem calc(-1 * var(--gutter) - 2.5em) 0 0; padding: 0; list-style: none;
-  color: var(--muted); font-size: clamp(1.05rem, 3vw, 1.6rem); line-height: 1.45;
-}
+.home-keywords, .home-keyword-rows { margin-top: .9rem; color: var(--muted); font-size: clamp(1.2rem, 3.5vw, 2rem); line-height: 1.45; }
+.home-keywords { margin-right: calc(-1 * var(--gutter) - 2.5em); padding: 0; list-style: none; }
+.home-keyword-rows { margin-inline: calc(-1 * var(--gutter)); }
+.home-keyword-row { white-space: nowrap; }
 .home-keywords li { display: inline; white-space: nowrap; }
 .home-keywords li:not(:last-child)::after { content: "\00a0·"; }
 .field-instruction { margin: clamp(1.5rem, 4vw, 3rem) 0 0; color: var(--ink); font-size: clamp(1.15rem, 1.6vw, 1.35rem); line-height: 1.3; text-align: center; text-wrap: balance; }
@@ -132,7 +132,7 @@ html[data-home="3"] .home-variant[data-variant="3"] { display: block; }
    Re-measure if a lead gets longer; a longer one wraps onto a second line. */
 @media (orientation: landscape) and (min-width: 900px) {
   .home-lead { font-size: 2.45cqi; line-height: 1.15; }
-  .home-keywords { margin-top: 1.1rem; font-size: 1.85cqi; }
+  .home-keywords, .home-keyword-rows { margin-top: 1.1rem; font-size: 2.2cqi; }
 }
 
 /* Object field (ObjectField.astro, docs/collage-algorithm.md) */
@@ -474,7 +474,7 @@ html.js .object-field[data-ready="false"] { opacity: 0; animation: field-reveal 
    Project places are clay, village notes paper with a muted ring, Green Camp a lichen square.
    Line widths stay in screen pixels at every size (non-scaling strokes). */
 .place-map { margin-top: clamp(3rem, 8vw, 6rem); container-type: inline-size; }
-.place-map > h2 { margin: 0 0 clamp(1rem, 3vw, 1.75rem); font-size: clamp(1.5rem, 3vw, 2.2rem); }
+.place-map-main > h2 { margin: 0 0 clamp(1rem, 3vw, 1.75rem); font-size: clamp(1.5rem, 3vw, 2.2rem); }
 .place-map-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(1.5rem, 4vw, 3rem); }
 .place-map-figure { position: relative; margin: 0 calc(-1 * var(--gutter)); }
 .place-map-svg { display: block; width: 100%; height: auto; background: var(--paper-light); }
@@ -504,8 +504,10 @@ html.js .object-field[data-ready="false"] { opacity: 0; animation: field-reveal 
 .pm-note text { fill: var(--muted); }
 .pm-camp .pm-dot { fill: var(--lichen); stroke: var(--paper-light); }
 .pm-arrow { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-.pm-linked { cursor: pointer; }
-.pm-marker[data-active] .pm-dot, .pm-linked:hover .pm-dot { transform: scale(1.3); }
+.pm-marker { cursor: pointer; }
+.pm-marker:focus-visible { outline: none; }
+.pm-marker:focus-visible .pm-hit { stroke: var(--ink); stroke-width: 2; }
+.pm-marker[data-active] .pm-dot, .pm-marker:hover .pm-dot { transform: scale(1.3); }
 .pm-project[data-active] .pm-dot { fill: var(--ink); }
 /* Narrow: the drawing keeps a readable scale and swipes sideways inside its frame. */
 .place-map-scroll { overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; }
@@ -527,7 +529,13 @@ html.js .object-field[data-ready="false"] { opacity: 0; animation: field-reveal 
 .place-map-lists { display: grid; gap: 2rem; align-content: start; }
 .place-map-group h3 { margin: 0 0 .5rem; color: var(--muted); font-size: .8rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
 .place-map-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); column-gap: 1.5rem; margin: 0; padding: 0; list-style: none; }
-.place-map-list > li { border-top: 1px solid var(--line); }
+/* The row of the marker pointed at or clicked gets a clay wash reaching a little past the text. */
+.place-map-list > li { position: relative; isolation: isolate; border-top: 1px solid var(--line); }
+.place-map-list > li::before {
+  content: ""; position: absolute; z-index: -1; inset: 0 -.6rem; border-radius: .5rem;
+  background: transparent; transition: background-color 160ms ease;
+}
+.place-map-list > li:is([data-active], :target)::before { background: rgb(166 94 69 / 16%); }
 .pm-item { display: flex; align-items: flex-start; gap: .7rem; min-height: 48px; padding: .6rem 0; text-decoration: none; }
 a.pm-item:hover .pm-name, .place-map-list > li[data-active] .pm-name { text-decoration: underline; }
 .pm-key {
@@ -566,17 +574,19 @@ a.pm-item:hover .pm-name, .place-map-list > li[data-active] .pm-name { text-deco
   .place-map-figure { margin: 0; }
   .place-map-svg { border-radius: .8rem; }
 }
-/* Wide: the map on the left, the list beside it. */
-@container (min-width: 68rem) {
+/* Where the drawing doesn't swipe, the title and the whole drawing fit on the screen together. */
+@container (min-width: 40rem) {
+  .place-map-figure { width: min(100%, calc((100svh - 2rem - var(--map-head, 4.5rem)) * var(--map-aspect, 1.2))); }
+}
+/* Wide (iPad landscape and up): the map on the left, the list beside it, starting level with the drawing. */
+@container (min-width: 56rem) {
   .place-map-layout { grid-template-columns: minmax(0, 1fr) minmax(17rem, 24rem); align-items: start; }
-  /* Stays in the vertical centre of the screen while the list scrolls (without the script, at the top),
-     never taller than the screen. */
-  .place-map-figure {
-    position: sticky; top: max(1rem, calc(50vh - var(--map-half, 50vh)));
-    width: min(100%, calc((100vh - 2rem) * var(--map-aspect, 1.2)));
-  }
+  /* The title and the drawing stay in the vertical centre of the screen while the list scrolls (without the
+     script, at the top). */
+  .place-map-main { position: sticky; top: max(1rem, calc(50vh - var(--map-half, 50vh))); }
+  .place-map-lists { padding-top: var(--map-head, 4.5rem); }
   .place-map-list { grid-template-columns: minmax(0, 1fr); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .pm-dot { transition: none; }
+  .pm-dot, .place-map-list > li::before { transition: none; }
 }
