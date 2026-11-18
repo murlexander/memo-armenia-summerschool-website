@@ -62,7 +62,7 @@ const homeScript = homeVariant
       <slot />
     </main>
     <Footer site={site} lang={lang} />
-    <nav class="lang-switch" aria-label={ui.language}>
+    <nav class="lang-switch" aria-label={ui.language} data-autohide="down">
       {langs.map((code) => (
         <a href={href(path, code)} hreflang={code} lang={code} aria-current={code === lang ? 'true' : undefined}>{langLabels[code]}</a>
       ))}
@@ -71,8 +71,9 @@ const homeScript = homeVariant
 </html>
 
 <script>
-  const switcher = document.querySelector<HTMLElement>('.lang-switch');
-  if (switcher) {
+  // Floating bars (language switch; the home variant switch in the team preview) hide while scrolling down.
+  const bars = document.querySelectorAll<HTMLElement>('[data-autohide]');
+  if (bars.length) {
     let lastY = window.scrollY;
     let downwardTravel = 0;
     let pending = false;
@@ -85,10 +86,10 @@ const homeScript = homeVariant
       const delta = y - lastY;
       if (y <= 80 || end - y <= 80 || delta < 0) {
         downwardTravel = 0;
-        switcher.removeAttribute('data-hidden');
+        for (const bar of bars) bar.removeAttribute('data-hidden');
       } else {
         downwardTravel += delta;
-        if (downwardTravel >= 16) switcher.setAttribute('data-hidden', '');
+        if (downwardTravel >= 16) for (const bar of bars) bar.setAttribute('data-hidden', '');
       }
       lastY = y;
     };

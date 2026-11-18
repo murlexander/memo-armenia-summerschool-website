@@ -57,7 +57,7 @@ map.yaml, map-base.json           places (name, note, coordinates, projectIds) a
 - `published` is false by default and is set only by promotion in the [content pipeline](content-pipeline.md). Approval evidence stays private; public checks can only enforce structure.
 - Normal builds drop unpublished projects, objects and pages at the content loader, so neither their data nor their images reach the output.
 - `site/scripts/check-content.ts` runs in `validate` and CI. It fails on an object without exactly one project, a project without objects, missing alt text or required fields on published content, a published project referencing unpublished objects, cut-out size or transparency mismatches, and duplicate IDs or slugs. Problems in unpublished content are warnings; in preview, structural ones (bad references, files, alt text) fail too, while gaps the preview shows as placeholders stay warnings.
-- **Team preview.** `SITE_PREVIEW=1` includes unpublished content, adds `noindex,nofollow,noarchive,noimageindex` to every page and shows a home-variant switcher. The build refuses to run unless `SITE_OUT_DIR` is an absolute path outside this repository.
+- **Team preview.** `SITE_PREVIEW=1` includes unpublished content, adds `noindex,nofollow,noarchive,noimageindex` to every page and shows a home-variant switch floating at the top of the home page. The build refuses to run unless `SITE_OUT_DIR` is an absolute path outside this repository.
 
 ## Quality bar
 

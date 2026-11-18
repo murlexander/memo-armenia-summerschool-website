@@ -42,15 +42,15 @@ const largeInstruction = variants.filter((variant) => variant.instruction === 'l
       </div>
     ))}
     <p class="field-instruction" id="field-instruction"><span aria-hidden="true">↓</span> {ui.chooseObject}</p>
-    {preview && (
-      <nav class="variant-switch" aria-label={ui.homeVariant}>
-        <span>{ui.homeVariant}:</span>
-        {variants.map((variant) => (
-          <a href={`${href('', lang)}?home=${variant.key}`} data-variant={variant.key}>{variant.key}</a>
-        ))}
-      </nav>
-    )}
   </section>
+  {preview && (
+    <nav class="variant-switch" aria-label={ui.homeVariant} data-autohide="up">
+      <span class="variant-switch-label" aria-hidden="true">{ui.homeVariant}</span>
+      {variants.map((variant) => (
+        <a href={`${href('', lang)}?home=${variant.key}`} data-variant={variant.key}>{variant.key}</a>
+      ))}
+    </nav>
+  )}
   <ObjectField objects={objects} label={ui.objects} describedBy="field-instruction" anchorPrefix={objectAnchor('')} projectWord={ui.project} />
   {/* The map of places under the field; the page shell also gives the footer its usual space above. */}
   <div class="page-shell home-map">
@@ -60,8 +60,22 @@ const largeInstruction = variants.filter((variant) => variant.instruction === 'l
 
 {preview && (
   <script is:inline>
-    for (const link of document.querySelectorAll('.variant-switch a')) {
-      if (link.dataset.variant === document.documentElement.dataset.home) link.setAttribute('aria-current', 'true');
+    // Switch in place, without reloading the page or losing the scroll position; the link still works without JavaScript.
+    const links = document.querySelectorAll('.variant-switch a');
+    const mark = () => {
+      for (const link of links) {
+        if (link.dataset.variant === document.documentElement.dataset.home) link.setAttribute('aria-current', 'true');
+        else link.removeAttribute('aria-current');
+      }
+    };
+    for (const link of links) {
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        document.documentElement.dataset.home = link.dataset.variant;
+        history.replaceState(null, '', link.href);
+        mark();
+      });
     }
+    mark();
   </script>
 )}
