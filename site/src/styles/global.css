@@ -118,19 +118,19 @@ html[data-home="3"] .home-variant[data-variant="3"] { display: block; }
 .home-lead { max-width: 34ch; margin: 0; font-size: clamp(1.25rem, 2.6vw, 2rem); line-height: 1.3; letter-spacing: -.01em; }
 .home-keywords { max-width: 64ch; margin: .75rem 0 0; color: var(--muted); font-size: clamp(.95rem, 1.4vw, 1.1rem); line-height: 1.45; }
 .home-keywords .keyword { white-space: nowrap; }
-.field-instruction { display: flex; gap: .6rem; align-items: baseline; margin: 0; color: var(--muted); font-size: .95rem; }
+.field-instruction { display: flex; gap: .6rem; align-items: baseline; margin: clamp(1rem, 2.5vw, 2rem) 0 0; color: var(--muted); font-size: .95rem; }
 html[data-home="1"] [data-large-instruction~="1"] .field-instruction,
 html[data-home="2"] [data-large-instruction~="2"] .field-instruction,
 html[data-home="3"] [data-large-instruction~="3"] .field-instruction { color: var(--ink); font-size: clamp(1.15rem, 1.6vw, 1.35rem); line-height: 1.3; text-wrap: balance; }
 @media (max-width: 599px) {
   .home-keywords { font-size: .875rem; }
 }
-/* Keep the lead and readable keyword measure together; the instruction sits alongside on desktop. */
+/* Keep the lead and readable keyword measure together; the instruction gets its own line right above the objects. */
 @media (orientation: landscape) and (min-width: 900px) {
   .home-intro { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); column-gap: clamp(2rem, 5vw, 5rem); align-items: start; }
   .home-variant { grid-column: 1; grid-row: 1; }
   .home-lead { max-width: none; font-size: clamp(1.5rem, 2.9vw, 2.9rem); line-height: 1.2; }
-  .field-instruction { grid-column: 2; grid-row: 1; padding-top: .5em; }
+  .field-instruction { grid-column: 1 / -1; grid-row: 2; }
   .home-keywords { font-size: clamp(1.1rem, 1.4vw, 1.35rem); }
 }
 
