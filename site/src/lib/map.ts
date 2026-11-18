@@ -168,7 +168,7 @@ type MapStrings = {
 export const mapStrings: Record<Lang, MapStrings> = {
   ru: {
     title: 'Карта мест',
-    projects: 'Проекты',
+    projects: 'Места',
     notes: 'Заметки о деревне',
     where: 'Где это',
     allPlaces: 'Все места на карте',
@@ -178,7 +178,7 @@ export const mapStrings: Record<Lang, MapStrings> = {
   },
   en: {
     title: 'Map of places',
-    projects: 'Projects',
+    projects: 'Places',
     notes: 'Village notes',
     where: 'Where it is',
     allPlaces: 'All places on the map',
@@ -188,7 +188,7 @@ export const mapStrings: Record<Lang, MapStrings> = {
   },
   hy: {
     title: 'Վայրերի քարտեզ',
-    projects: 'Նախագծեր',
+    projects: 'Վայրեր',
     notes: 'Նշումներ գյուղի մասին',
     where: 'Որտեղ է',
     allPlaces: 'Բոլոր վայրերը քարտեզի վրա',
