@@ -21,10 +21,12 @@ const hideInstruction = variants
   .filter((variant) => !variant.instruction)
   .map((variant) => `html[data-home="${variant.key}"] .field-instruction{display:none}`)
   .join('');
+// Variants that ask for a bigger instruction; global.css enlarges it while one of them is shown.
+const largeInstruction = variants.filter((variant) => variant.instruction === 'large').map((variant) => variant.key).join(' ');
 ---
 <Base section="lost" homeVariant={site.defaultHomeVariant}>
   {hideInstruction && <style is:inline set:html={hideInstruction} />}
-  <section class="home-intro" aria-labelledby="home-title">
+  <section class="home-intro" aria-labelledby="home-title" data-large-instruction={largeInstruction || undefined}>
     <h1 id="home-title" class="visually-hidden">{site.title}</h1>
     {variants.map((variant) => (
       <div class="home-variant" data-variant={variant.key}>

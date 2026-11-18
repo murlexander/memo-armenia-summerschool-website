@@ -17,7 +17,7 @@ const ru = {
   sections: 'Разделы сайта',
   language: 'Язык',
   objects: 'Предметы',
-  chooseObject: 'Выберите предмет, чтобы открыть его проект.',
+  chooseObject: 'Выберите предмет, чтобы открыть проект.',
   homeVariant: 'Вариант главной',
   catalogue: 'Все проекты',
   catalogueEmpty: 'Проекты скоро появятся.',
