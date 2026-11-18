@@ -119,7 +119,7 @@ html[data-home="3"] .home-variant[data-variant="3"] { display: block; }
    visit; with JavaScript they run in rows cut by both screen edges (Home.astro), without it the list wraps and runs off
    the right edge. The instruction sits centred on its own line, right above the objects. */
 .home-intro { container-type: inline-size; overflow-x: clip; }
-.home-lead { margin: 0; font-size: clamp(1.25rem, 4.2vw, 2.5rem); line-height: 1.22; letter-spacing: -.01em; text-wrap: pretty; }
+.home-lead { margin: 0; font-size: clamp(1.25rem, 4.2vw, 2.5rem); line-height: 1.22; letter-spacing: -.01em; text-align: center; text-wrap: balance; }
 .home-keywords, .home-keyword-rows { margin-top: .9rem; color: var(--muted); font-size: clamp(1.2rem, 3.5vw, 2rem); line-height: 1.45; }
 .home-keywords { margin-right: calc(-1 * var(--gutter) - 2.5em); padding: 0; list-style: none; }
 .home-keyword-rows { margin-inline: calc(-1 * var(--gutter)); }
