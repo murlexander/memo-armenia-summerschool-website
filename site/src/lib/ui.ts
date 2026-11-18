@@ -24,7 +24,7 @@ const ru = {
   // FOUND filter
   filters: 'Отбор проектов',
   filterStudio: 'Студия',
-  filterMedium: 'Формат',
+  filterMedium: 'Медиум',
   filterShift: 'Смена',
   filterAll: 'Все',
   filterReset: 'Показать все',
