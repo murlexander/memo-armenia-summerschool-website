@@ -32,18 +32,29 @@ const hideInstruction = variants
         <p class="home-lead">{variant.lead ? bindShortWords(variant.lead) : <Pending text={ui.pendingText} />}</p>
         {variant.keywords === null && <p class="home-keywords"><Pending text={ui.pendingText} /></p>}
         {variant.keywords && variant.keywords.length > 0 && (
-          <p class="home-keywords">
-            {variant.keywords.map((keyword, index) => (
-              <>{index > 0 && <span aria-hidden="true">{' · '}</span>}<span class="keyword">{keyword}</span>{index < variant.keywords!.length - 1 && <span class="visually-hidden">,</span>}</>
-            ))}
-          </p>
+          <ul class="home-keywords" data-shuffle>
+            {variant.keywords.map((keyword, index) => <>{index > 0 && ' '}<li>{keyword}</li></>)}
+          </ul>
         )}
       </div>
     ))}
+    {variants.some((variant) => variant.keywords && variant.keywords.length > 1) && (
+      <script is:inline>
+        // A new order of keywords on every visit.
+        for (const list of document.querySelectorAll('.home-keywords[data-shuffle]')) {
+          const items = [...list.children];
+          for (let i = items.length - 1; i > 0; i -= 1) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [items[i], items[j]] = [items[j], items[i]];
+          }
+          list.replaceChildren(...items.flatMap((item, i) => (i ? [' ', item] : [item])));
+        }
+      </script>
+    )}
     <p class="field-instruction" id="field-instruction"><span class="field-instruction-arrow" aria-hidden="true">↓</span>{ui.chooseObject}</p>
   </section>
   {preview && (
-    <nav class="variant-switch" aria-label={ui.homeVariant} data-autohide="up">
+    <nav class="variant-switch" aria-label={ui.homeVariant} data-autohide="down">
       <span class="variant-switch-label" aria-hidden="true">{ui.homeVariant}</span>
       {variants.map((variant) => (
         <a href={`${href('', lang)}?home=${variant.key}`} data-variant={variant.key}>{variant.key}</a>
