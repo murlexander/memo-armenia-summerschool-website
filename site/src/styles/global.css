@@ -308,12 +308,13 @@ html.js .object-field[data-ready="false"] { opacity: 0; animation: field-reveal 
 .process-row a:hover img { transform: scale(1.02); }
 @media (min-width: 700px) { .process-row { grid-template-columns: repeat(var(--columns, 4), minmax(0, 1fr)); } }
 /* The studio's other projects: FOUND's tiles; on phones one row that scrolls sideways to the screen edges. */
-.project-related { margin-top: clamp(4rem, 10vw, 7rem); }
+.project-related { margin-top: clamp(4rem, 10vw, 7rem); min-width: 0; } /* a grid item: lets the phone carousel scroll inside instead of widening the page */
 .project-related h2 { font-size: clamp(1.5rem, 3vw, 2.2rem); margin: 0; }
 .project-related-list { grid-template-columns: repeat(auto-fill, minmax(min(100%, clamp(9rem, 14vw, 12rem)), 1fr)); gap: 1.5rem; margin-top: clamp(1.25rem, 3vw, 2rem); }
 @media (max-width: 719px) {
   .project-related-list {
     grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: min(42%, 12rem); gap: 1rem;
+    position: relative; /* keeps absolutely positioned labels in the tiles inside the scroller */
     margin-inline: calc(-1 * var(--gutter)); padding: .4rem var(--gutter) .5rem; /* room for the focus ring */ scroll-padding-inline: var(--gutter);
     overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none;
   }
