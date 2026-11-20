@@ -11,7 +11,7 @@ export const mediumLabels = {
   comic: { ru: 'комикс', en: 'comic', hy: 'կոմիքս' },
   mosaic: { ru: 'мозаика', en: 'mosaic', hy: 'խճանկար' },
   mural: { ru: 'роспись', en: 'mural', hy: 'որմնանկար' },
-  lightbox: { ru: 'ланчбокс', en: 'light box', hy: 'լուսատուփ' },
+  lightbox: { ru: 'лайтбокс', en: 'light box', hy: 'լուսատուփ' },
   installation: { ru: 'инсталляция', en: 'installation', hy: 'ինստալյացիա' },
   sculpture: { ru: 'скульптура', en: 'sculpture', hy: 'քանդակ' },
 } as const satisfies Record<string, Record<Lang, string>>;
