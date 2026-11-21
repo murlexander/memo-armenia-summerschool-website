@@ -5,15 +5,12 @@ import type { Lang } from './ui.ts';
 
 export const mediumLabels = {
   film: { ru: 'фильм', en: 'film', hy: 'ֆիլմ' },
-  animation: { ru: 'анимация', en: 'animation', hy: 'անիմացիա' },
   play: { ru: 'спектакль', en: 'play', hy: 'ներկայացում' },
   zine: { ru: 'зин', en: 'zine', hy: 'զին' },
-  comic: { ru: 'комикс', en: 'comic', hy: 'կոմիքս' },
   mosaic: { ru: 'мозаика', en: 'mosaic', hy: 'խճանկար' },
   mural: { ru: 'роспись', en: 'mural', hy: 'որմնանկար' },
   lightbox: { ru: 'лайтбокс', en: 'light box', hy: 'լուսատուփ' },
   installation: { ru: 'инсталляция', en: 'installation', hy: 'ինստալյացիա' },
-  sculpture: { ru: 'скульптура', en: 'sculpture', hy: 'քանդակ' },
 } as const satisfies Record<string, Record<Lang, string>>;
 
 export type Medium = keyof typeof mediumLabels;
